@@ -1,0 +1,123 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #fff;
+    margin: 0;
+    padding: 0;
+    text-align: center;
+    color: #000;
+}
+
+.content {
+    width: 70%;
+    margin: auto;
+    overflow: hidden;
+}
+
+.container {
+    width: 70%;
+    margin: auto;
+    overflow: hidden;
+}
+
+header {
+    background-color: #333;
+    color: #FFF;
+    padding-top: 30px;
+    min-height: 70px;
+    border-bottom: #FFC107 3px solid;
+}
+
+header a {
+    color: #FFF;
+    text-decoration: none;
+    text-transform: uppercase;
+    font-size: 16px;
+}
+
+header li {
+    float: left;
+    display: inline;
+    padding: 0 20px 0 20px;
+}
+
+header ul {
+    margin: 0;
+    padding: 0;
+}
+
+header .title {
+    float: left;
+}
+
+header .nav {
+    float: right;
+    margin-top: 10px;
+}
+
+.main {
+    padding: 20px;
+    background: #fff;
+    color: #C33;
+}
+
+footer {
+    background-color: #333;
+    color: #FFF;
+    text-align: center;
+    padding: 10px;
+    margin-top: 20px;
+}
+
+img {
+    width: 60vw;    /* adjust as needed */
+    height: auto;
+    border-radius: 10px; /* adjust as needed */
+    object-fit: contain; 
+}
+
+button {
+    background-color: #333;
+    border: none;
+    color: white;
+    padding: 15px 32px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 4px 2px;
+    cursor: pointer;
+    border-radius: 12px;
+    transition-duration: 0.4s;
+}
+
+button:hover {
+    background-color: #FFC107;
+    color: black;
+}
+
+table {
+    border-collapse: collapse;  /* removes the space between borders */
+    width: 100%; /* full width */
+    margin-bottom: 2em; /* add some margin at the bottom */
+    text-align: center; /* center the text */
+}
+
+th, td {
+    border: 1px solid #dddddd; /* border around cells */
+    text-align: left;  /* align text to the left */
+    padding: 8px;  /* padding inside each cell */
+}
+
+th {
+    background-color: #f3f3f3;  /* a light background for headers */
+    color: black;
+}
+
+tr:nth-child(even) {
+    background-color: #f2f2f2; /* a light background for even rows */
+}
+
+tr:hover {
+    background-color: #ddd;  /* a slightly darker background when hovering over a row */
+}
+

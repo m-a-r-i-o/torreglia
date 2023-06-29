@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Data Analysis Report</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Data Analysis Report</h1>
+        <p>Number of Instances (Rows): {{ num_instances }}</p>
+        <p>Number of Columns: {{ num_columns }}</p>
+        <p>Number of Numeric Variables: {{ num_numeric }}</p>
+        <p>Number of Categorical Variables: {{ num_categorical }}</p>
+        <p>Number of Rows that do not contain NAs: {{ num_instances_not_nan}}</p>
+        <p>Number of Duplicated Rows: {{num_duplicated_instances}}</p>
+        <!-- Display univariate analysis -->
+        <h2>Univariate Analysis</h2>
+        <div id="univariate_analysis">
+            {{ univariate_analysis | safe }}
+        </div>
+
+        <!-- Display bivariate analysis -->
+        <h2>Bivariate Analysis</h2>
+        <div id="bivariate_analysis">
+            {{ bivariate_analysis | safe }}
+        </div>
+    </div>
+</body>
+</html>
