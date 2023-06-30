@@ -7,20 +7,30 @@
 <body>
     <div class="container">
         <h1>Data Analysis Report</h1>
-        <p>Number of Instances (Rows): {{ num_instances }}</p>
+        <p>Number of Rows: {{ num_initial_instances }}</p>
+        <p>Number of Rows that contain NAs: {{ num_instances_nan }}</p>
+        <p>Number of Rows, after dropping NAs: {{ num_instances }}</p>
+        <p>Columns with NAs (NA count): {{ columns_with_NAs }} </p>
         <p>Number of Columns: {{ num_columns }}</p>
         <p>Number of Numeric Variables: {{ num_numeric }}</p>
         <p>Number of Categorical Variables: {{ num_categorical }}</p>
-        <p>Number of Rows that do not contain NAs: {{ num_instances_not_nan}}</p>
-        <p>Number of Duplicated Rows: {{num_duplicated_instances}}</p>
+        <p>Number of Duplicated Rows: {{ num_duplicated_instances }}</p>
+
         <!-- Display univariate analysis -->
         <h2>Univariate Analysis</h2>
         <div id="univariate_analysis">
             {{ univariate_analysis | safe }}
+            <h3>Strip plot</h3>
+            <img src="{{ url_for('static', filename='images/violin_plot.png') }}" alt="Strip Plot">
+            <h3>Histograms</h3>            
+                {% for column in num_columns_list %}
+        <img src="{{ url_for('static', filename='images/histograms/histogram_' + column + '.png') }}" alt="{{ column }} Histogram">
+    {% endfor %}
         </div>
 
         <!-- Display bivariate analysis -->
         <h2>Bivariate Analysis</h2>
+        <h3>Correlation matrix</h3>
         <div id="bivariate_analysis">
             {{ bivariate_analysis | safe }}
         </div>
