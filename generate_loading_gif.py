@@ -25,7 +25,7 @@ fig = plt.figure()
 filenames = []
 
 # Generate GIF
-for i in range(8):  # Adjust range for more iterations
+for i in range(4):  # Adjust range for more iterations
     plt.clf()
     data = sierpinski(data, i, 4)
     for points in data:

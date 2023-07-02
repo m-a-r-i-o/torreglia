@@ -158,4 +158,59 @@ tr:hover {
     background-color: white !important;
 }
 
+input[type="submit"] {
+    background-color: #4CAF50; 
+    color: white; 
+    padding: 14px 20px; 
+    margin: 8px 0;
+    border: none; 
+    cursor: pointer;  
+    opacity: 0.9; 
+    transition: 0.3s;
+}
+
+input[type="file"]:hover {
+    opacity: 1;
+}
+
+input[type="file"]:active {
+    box-shadow: 0 5px #666;
+    transform: translateY(4px);
+}
+
+input[type="submit"]:hover {
+    opacity: 1;
+}
+
+input[type="submit"]:active {
+    box-shadow: 0 5px #666;
+    transform: translateY(4px);
+}
+
+/* This will style the header */
+header {
+  background-color: #4CAF50;
+  color: white;
+  padding: 15px;
+}
+
+/* This will style the navigation bar */
+nav ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+/* This will style the individual items in the navigation bar */
+nav ul li {
+  display: inline-block;
+  margin-right: 15px;
+}
+
+/* This will style the links in the navigation bar */
+nav ul li a {
+  color: white;
+  text-decoration: none;
+}
+
+
 

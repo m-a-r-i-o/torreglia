@@ -8,6 +8,15 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
 <body>
+<header>
+  <nav>
+    <ul>
+      <li><a href="/">Home</a></li>
+      <li><a href="/">Upload</a></li>
+      <!-- Add more navigation links here -->
+    </ul>
+  </nav>
+</header>
     <div class="container">
         <h1>Data Analysis Report</h1>
         <p>Number of Rows: {{ num_initial_instances }}</p>
