@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+<meta http-equiv="Pragma" content="no-cache" />
+<meta http-equiv="Expires" content="0" />
     <title>Data Analysis Report</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
@@ -19,13 +22,28 @@
         <!-- Display univariate analysis -->
         <h2>Univariate Analysis</h2>
         <div id="univariate_analysis">
-            {{ univariate_analysis | safe }}
+            {{ univariate_analysis_0 | safe }}
+            {{ univariate_analysis_1 | safe }}            
             <h3>Strip plot</h3>
             <img src="{{ url_for('static', filename='images/violin_plot.png') }}" alt="Strip Plot">
-            <h3>Histograms</h3>            
-                {% for column in num_columns_list %}
-        <img src="{{ url_for('static', filename='images/histograms/histogram_' + column + '.png') }}" alt="{{ column }} Histogram">
-    {% endfor %}
+            <h3>Histograms</h3>
+            <p>Click on histogram thumbnails to enlarge and download</p>  
+
+<table class="table-no-fancy">
+    <tr>
+        {% for column in num_columns_list %}
+        <td>
+            <a href="{{ url_for('static', filename='images/histograms/histogram_' + column + '.png') }}">
+            <img src="{{ url_for('static', filename='images/histograms/histogram_' + column + '.png') }}" alt="{{ column }} Histogram" style="max-width: 150px; max-height: 150px;">
+        </a>
+        </td>
+        {% if loop.index is divisibleby 5 %} <!--Change the '5' to change the number of images per row-->
+        </tr>
+        <tr>
+        {% endif %}
+        {% endfor %}
+    </tr>
+</table>
         </div>
 
         <!-- Display bivariate analysis -->

@@ -84,7 +84,8 @@ def upload():
 
             # Univariate analysis
             print("Univariate analysis")
-            univariate_analysis = {}
+            univariate_analysis_0 = {}
+            univariate_analysis_1 = {}            
             for column in df.columns:
                 if df[column].dtype in ['int64', 'float64']:
                     print("Testing normality")
@@ -100,7 +101,7 @@ def upload():
                     if(lognormal_p < 0.05):
                         lognormal_verdict = 'No'
                     print("Computing summary stats")                    
-                    univariate_analysis[column] = {
+                    univariate_analysis_0[column] = {
                         'mean': round_to_significant_digits(df[column].mean(), 2),
                         'std': round_to_significant_digits(df[column].std(), 2),
                         'skewness': round_to_significant_digits(skew(df[column]), 2),
@@ -109,6 +110,8 @@ def upload():
                         'max': round_to_significant_digits(df[column].max(), 2),
                         'median': round_to_significant_digits(df[column].median(), 2),
                         'IQR': round_to_significant_digits(df[column].quantile(0.75) - df[column].quantile(0.25),2),
+                    }
+                    univariate_analysis_1[column] = {
                         'Normal?': normal_verdict,
                         'p_n': round_to_significant_digits(normal_p, 2),
                         'Lognormal?': lognormal_verdict,
@@ -150,7 +153,10 @@ def upload():
             print("Creating histograms")
             for column in df_numeric.columns:
                 plt.figure()  # Create a new figure
-                sns.histplot(df_numeric[column], kde=False, bins = int(1.5*np.sqrt(df_numeric.shape[0])), color='gray', edgecolor=None)  # Create the histogram
+                #sns.histplot(df_numeric[column], kde=False, bins = int(1.5*np.sqrt(df_numeric.shape[0])), color='gray', edgecolor=None)  # Create the histogram
+                plt.hist(df_numeric[column], color='gray', edgecolor=None)
+                plt.xlabel(column)
+                plt.ylabel('Counts')
                 plt.savefig(f'static/images/histograms/histogram_{column}.png', bbox_inches='tight')  # Save the figure
                 plt.close()  # Close the figure
 
@@ -172,7 +178,8 @@ def upload():
                 num_columns=df.shape[1],
                 num_numeric=len(df.select_dtypes(include=['int64', 'float64']).columns),
                 num_categorical=len(df.select_dtypes(include=['object']).columns),
-                univariate_analysis=pd.DataFrame(univariate_analysis).transpose().to_html(),
+                univariate_analysis_0=pd.DataFrame(univariate_analysis_0).transpose().to_html(),
+                univariate_analysis_1=pd.DataFrame(univariate_analysis_1).transpose().to_html(),
                 columns_with_NAs=na_count_nice,
                 bivariate_analysis=corr_matrix,
                 num_columns_list=df_numeric.columns.tolist()  # add this line

@@ -2,13 +2,32 @@
 <!DOCTYPE html>
 <html>
 <head>
+	<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+<meta http-equiv="Pragma" content="no-cache" />
+<meta http-equiv="Expires" content="0" />
     <title>Upload your CSV</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
 <body>
+	<h1> Data analysis utility </h1>
+	<p> Select a .csv file to upload:</p>
+	<p></p>
     <form method="POST" enctype="multipart/form-data" action="{{ url_for('upload') }}">
     <input type="file" name="datafile">
-    <input type="submit">
+    <input type="submit" id="startAnalysisButton">
 </form>
+
+<p></p>
+<div class="loader" id="spinner">
+<img src="static/images/loading.gif" style="max-width: 150px; max-height: 150px;"><br>
+  Loading...
+</div>
+
+<script>
+  document.getElementById('startAnalysisButton').addEventListener('click', function() {
+    document.getElementById('spinner').classList.add('loading');
+  });
+</script>
+
 </body>
 </html>

@@ -114,10 +114,48 @@ th {
 }
 
 tr:nth-child(even) {
-    background-color: #f2f2f2; /* a light background for even rows */
+    background-color: #f2f5fe; /* a light background for even rows */
 }
 
 tr:hover {
     background-color: #ddd;  /* a slightly darker background when hovering over a row */
 }
+
+.loader {
+  /*...your existing styles...*/
+  display: none;
+}
+
+/* Add a .loading class to control the display */
+.loading {
+  display: block !important;
+}
+
+.table-no-fancy {
+    /* you can customize these styles */
+    background-color: white !important;
+    color: black !important;
+}
+
+.table-no-fancy thead {
+    background-color: white !important;
+    color: black !important;
+}
+
+.table-no-fancy tr {
+    background-color: white !important;
+}
+
+.table-no-fancy tr:hover {
+    background-color: white !important;
+}
+
+.table-no-fancy tr:nth-child(even) {
+    background-color: white !important;
+}
+
+.table-no-fancy th {
+    background-color: white !important;
+}
+
 
