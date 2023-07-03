@@ -29,6 +29,7 @@ def get_top_k_pairs(mutual_info_dict, k):
 
 def plot_scatter_plots(df, pairs):
     n = len(pairs)
+    n = max(2, n)
     fig, axs = plt.subplots(n, figsize=(8, 6*n))  # Set the total figure size and create subplots
 
     for i, pair in enumerate(pairs):
@@ -95,17 +96,27 @@ def fit_line_or_poly(x, y, **kwargs):
     else:
         plt.plot(x, np.poly1d(poly_coef[1:])(x), color='g', alpha=0.5)  # Plot line
 
+def is_binary(file):
+    CHUNKSIZE = 1024
+    initial_bytes = file.read(CHUNKSIZE)
+    file.seek(0)  # reset file pointer back to the beginning
+    return b'\0' in initial_bytes
 
 @app.route('/', methods=['GET', 'POST'])
 def upload():
     if request.method == 'POST':
         file = request.files['datafile']
         if file:
+            if is_binary(file):
+                return render_template('error.html', error_message="The file appears to be binary, not csv")
             print("Detecting csv separator")
             sep = detect_separator(file)
             print("Reading in the file")
-            df = pd.read_csv(file, sep=sep, na_values=['NA', 'na', 'N/A', 'n/a', 'nan', 'NaN', 'NAN'])
-
+            try:
+                df = pd.read_csv(file, sep=sep, skipinitialspace=True, na_values=['NA', 'na', 'N/A', 'n/a', 'nan', 'NaN', 'NAN'])
+            except Exception as e:
+                return render_template('error.html', error_message=str(e))
+            df = df.applymap(lambda x: x.strip() if type(x) is str else x) #strip trailing spaces between commas
             #df = remove_second_header(df)
 
             init_num_rows = df.shape[0]
@@ -213,11 +224,13 @@ def upload():
                 plt.close()  # Close the figure
 
             # Calculating mutual information between variables
-            mutual_info_dict = calculate_mutual_info(df_numeric)
-            k_mi = 5
-            top_pairs = get_top_k_pairs(mutual_info_dict, k_mi)
-            plot_scatter_plots(df, top_pairs)
-
+            try:
+                mutual_info_dict = calculate_mutual_info(df_numeric)
+                k_mi = 5
+                top_pairs = get_top_k_pairs(mutual_info_dict, k_mi)
+                plot_scatter_plots(df, top_pairs)
+            except Exception as e:
+                print(str(e))
             # Create an enhanced pair plot for the numeric variables
             # Create a PairGrid
             #g = PairGrid(df_numeric)
@@ -255,7 +268,6 @@ def upload():
                 bivariate_analysis_0=corr_matrix_0,
                 bivariate_analysis_1=corr_matrix_1,                
                 num_columns_list=df_numeric.columns.tolist(),
-                mi_pairs = top_pairs
             )
     return render_template('upload.html')
 

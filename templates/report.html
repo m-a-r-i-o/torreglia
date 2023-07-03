@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <meta charset="UTF-8">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
 <meta http-equiv="Pragma" content="no-cache" />
 <meta http-equiv="Expires" content="0" />
@@ -19,7 +20,7 @@
   </nav>
 </header>
     <div class="container">
-        <h1>Data Analysis Report for {{file}}</h1>
+        <h1>Data Analysis Report for <em>{{file}}</em></h1>
         <p>Number of Rows: {{ num_initial_instances }}</p>
         <p>Number of Rows that contain NAs: {{ num_instances_nan }}</p>
         <p>Number of Rows, after dropping NAs: {{ num_instances }}</p>
@@ -71,6 +72,7 @@
             <h3>Selected scatter plots</h3>
             <p>We select up to five pairs of variables with the highest mutual information. These are likely to be related in some fashion, so it is worth visualizing their scatter plots.</p>
         <img src="{{ url_for('static', filename='images/mipairsscatter.png') }}" alt="Scatter Plots of Mutually informative variables">
+            <p>Keep in mind that if your dataset has more columns than rows this may fail.</p>
         </div>
 
     </div>
