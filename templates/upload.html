@@ -11,13 +11,14 @@
 <header>
   <nav>
     <ul>
-      <li><strong>&#x2656;</strong></li>
+      <li><strong>df.&#x2118;()</strong>
+</li>
       <li><a href="/">Home</a></li>
       <!-- Add more navigation links here -->
     </ul>
   </nav>
 </header>
-	<h1> Data analysis utility </h1>
+	<h1> df.&#x2118;() data analysis utility </h1>
 	<p> Select a .csv file to upload:</p>
 	<p></p>
     <form method="POST" enctype="multipart/form-data" action="{{ url_for('upload') }}">
@@ -31,6 +32,24 @@
 <img src="static/images/loading.gif" style="max-width: 150px; max-height: 150px;"><br>
   Loading... this may take a while
 </div>
+
+<h2>To do</h2>
+<ul>
+      <li>Fix tables that are too wide</li>
+      <li>Handle ill formatted input data, return error rather than crashing</li>
+      <li>Explain what you do in more detail, with references</li>
+      <li>Better handling of NAs, remove columns with too many NAs before restricting analysis to complete cases, NA imputation</li>
+      <li>Detect progressive numbers, constant columns or similar shit</li>
+      <li>Limit rows to 1000, sample if more</li>
+      <li>Limit variables to 10, do variable selection (cluster variables using mutual information distance, select the medoids) above </li>
+      <li>Add analysis for categorical variables</li>
+      <li>For bivariate plots add stats for the regression (report the mutual information, is the relation non linear, outliers...), make them nicer</li>
+      <li>Improve the selection of the number of mutually informative variables to plot</li>
+      <li>Multivariate analysis: parallel coordinate plot, pca, ica, umap</li>
+      <li>Outlier detection, isolation forests etc.</li>
+      <li>Clustering, dataset summarization with SOM, radar plots of data prototypes</li>
+      <li>Causal discovery, make a DAG, find meaningful (causal) regressions to run, regression diagnostics on those, find instrumental variables </li>
+</ul>
 
 <script>
   document.getElementById('startAnalysisButton').addEventListener('click', function() {
