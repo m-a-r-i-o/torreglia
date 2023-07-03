@@ -7,6 +7,11 @@ body {
     color: #000;
 }
 
+h2, h3 {
+    margin-top: 20px;
+}
+
+
 .content {
     width: 70%;
     margin: auto;
@@ -22,9 +27,8 @@ body {
 header {
     background-color: #333;
     color: #FFF;
-    padding-top: 30px;
-    min-height: 70px;
-    border-bottom: #FFC107 3px solid;
+    padding-top: 10px;
+    min-height: 25px;
 }
 
 header a {
@@ -159,7 +163,7 @@ tr:hover {
 }
 
 input[type="submit"] {
-    background-color: #4CAF50; 
+    background-color: #A0A0A0; 
     color: white; 
     padding: 14px 20px; 
     margin: 8px 0;
@@ -173,23 +177,15 @@ input[type="file"]:hover {
     opacity: 1;
 }
 
-input[type="file"]:active {
-    box-shadow: 0 5px #666;
-    transform: translateY(4px);
-}
 
 input[type="submit"]:hover {
     opacity: 1;
 }
 
-input[type="submit"]:active {
-    box-shadow: 0 5px #666;
-    transform: translateY(4px);
-}
 
 /* This will style the header */
 header {
-  background-color: #4CAF50;
+  background-color: #A0A0A0;
   color: white;
   padding: 15px;
 }

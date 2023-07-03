@@ -7,6 +7,8 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import os
 import csv
+from diptest import diptest
+
 
 app = Flask(__name__)
 
@@ -50,6 +52,8 @@ def remove_second_header(df):
 
     return df
 
+def binrule(u):
+    return int(1.5*(1 + np.log(len(u))/np.log(2.0)))
 
 @app.route('/', methods=['GET', 'POST'])
 def upload():
@@ -88,14 +92,19 @@ def upload():
             univariate_analysis_1 = {}            
             for column in df.columns:
                 if df[column].dtype in ['int64', 'float64']:
+                    print("Testing unimodality")
+                    unimodal_p, dip = diptest(df[column])
                     print("Testing normality")
                     normal_p = shapiro(df[column])[1]
                     lognormal_p = 0
                     if (min(df[column]) > 0):
                         print("Testing lognormality")
                         lognormal_p = shapiro(np.log(df[column]))[1]
+                    unimodal_verdict = ' '
                     normal_verdict = ' '
                     lognormal_verdict = ' '
+                    if(unimodal_p < 0.05):
+                        unimodal_verdict = 'No'
                     if(normal_p < 0.05):
                         normal_verdict = 'No'
                     if(lognormal_p < 0.05):
@@ -112,6 +121,8 @@ def upload():
                         'IQR': round_to_significant_digits(df[column].quantile(0.75) - df[column].quantile(0.25),2),
                     }
                     univariate_analysis_1[column] = {
+                        'Unimodal': unimodal_verdict,
+                        'p_u' : round_to_significant_digits(unimodal_p, 2),
                         'Normal?': normal_verdict,
                         'p_n': round_to_significant_digits(normal_p, 2),
                         'Lognormal?': lognormal_verdict,
@@ -120,7 +131,8 @@ def upload():
             print("Bivariate analysis")
             # Bivariate analysis: correlation matrix using Spearman correlation
             print("Computing correlation matrix")
-            corr_matrix = (df.corr(method='spearman')).applymap(lambda x: round_to_significant_digits(x, 2)).to_html()
+            corr_matrix_0 = (df.corr(method='pearson')).applymap(lambda x: round_to_significant_digits(x, 2)).to_html()
+            corr_matrix_1 = (df.corr(method='spearman')).applymap(lambda x: round_to_significant_digits(x, 2)).to_html()
 
             na_count_nice = na_count[na_count>0]
             if(len(na_count_nice) == 0):
@@ -140,8 +152,8 @@ def upload():
             plt.figure(figsize=(12,6))  
             #sns.violinplot(y="variable", x="value", data=df_melted, inner=None)
 
-            # Overlay a strip plot.
-            sns.stripplot(y="variable", x="value", data=df_melted, color="k", jitter=True)
+            # Overlay a box plot.
+            sns.boxplot(y="variable", x="value", data=df_melted, color="#A0A0A0")
 
             # Save the figure
             plt.savefig("static/images/violin_plot.png", bbox_inches='tight') 
@@ -154,7 +166,7 @@ def upload():
             for column in df_numeric.columns:
                 plt.figure()  # Create a new figure
                 #sns.histplot(df_numeric[column], kde=False, bins = int(1.5*np.sqrt(df_numeric.shape[0])), color='gray', edgecolor=None)  # Create the histogram
-                plt.hist(df_numeric[column], color='gray', edgecolor=None)
+                plt.hist(df_numeric[column], color='#A0A0A0', edgecolor=None, bins=binrule(df_numeric[column]))
                 plt.xlabel(column)
                 plt.ylabel('Counts')
                 plt.savefig(f'static/images/histograms/histogram_{column}.png', bbox_inches='tight')  # Save the figure
@@ -171,6 +183,7 @@ def upload():
             print("Finishing off")
             return render_template(
                 'report.html',
+                file=file.filename,
                 num_initial_instances=init_num_rows,
                 num_instances=df.shape[0],
                 num_instances_nan = init_num_rows - num_rows_no_nan,
@@ -181,7 +194,8 @@ def upload():
                 univariate_analysis_0=pd.DataFrame(univariate_analysis_0).transpose().to_html(),
                 univariate_analysis_1=pd.DataFrame(univariate_analysis_1).transpose().to_html(),
                 columns_with_NAs=na_count_nice,
-                bivariate_analysis=corr_matrix,
+                bivariate_analysis_0=corr_matrix_0,
+                bivariate_analysis_1=corr_matrix_1,                
                 num_columns_list=df_numeric.columns.tolist()  # add this line
             )
     return render_template('upload.html')

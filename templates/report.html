@@ -11,14 +11,14 @@
 <header>
   <nav>
     <ul>
+      <li><strong>&#x265C;</strong></li>
       <li><a href="/">Home</a></li>
-      <li><a href="/">Upload</a></li>
       <!-- Add more navigation links here -->
     </ul>
   </nav>
 </header>
     <div class="container">
-        <h1>Data Analysis Report</h1>
+        <h1>Data Analysis Report for {{file}}</h1>
         <p>Number of Rows: {{ num_initial_instances }}</p>
         <p>Number of Rows that contain NAs: {{ num_instances_nan }}</p>
         <p>Number of Rows, after dropping NAs: {{ num_instances }}</p>
@@ -27,14 +27,17 @@
         <p>Number of Numeric Variables: {{ num_numeric }}</p>
         <p>Number of Categorical Variables: {{ num_categorical }}</p>
         <p>Number of Duplicated Rows: {{ num_duplicated_instances }}</p>
-
+        <p></p>
         <!-- Display univariate analysis -->
         <h2>Univariate Analysis</h2>
         <div id="univariate_analysis">
             {{ univariate_analysis_0 | safe }}
-            {{ univariate_analysis_1 | safe }}            
-            <h3>Strip plot</h3>
+            {{ univariate_analysis_1 | safe }}
+            <p>We test unimodality using Hartigan's dip test and normality  with Shapiro's test. Lognormality is tested by taking the log and testing for normality. The threshold for all p-values is 0.05.</p>
+                    <p></p>            
+            <h3>Box plot</h3>
             <img src="{{ url_for('static', filename='images/violin_plot.png') }}" alt="Strip Plot">
+                    <p></p>
             <h3>Histograms</h3>
             <p>Click on histogram thumbnails to enlarge and download</p>  
 
@@ -56,10 +59,14 @@
         </div>
 
         <!-- Display bivariate analysis -->
+                <p></p>
         <h2>Bivariate Analysis</h2>
-        <h3>Correlation matrix</h3>
+                <p></p>
         <div id="bivariate_analysis">
-            {{ bivariate_analysis | safe }}
+            <h3>Correlation matrix</h3>
+            {{ bivariate_analysis_0 | safe }}
+            <h3>Correlation matrix (Spearman correlation)</h3>
+            {{ bivariate_analysis_1 | safe }}
         <!--<h3>Pair plot</h3>
         <img src="{{ url_for('static', filename='images/pairplot.png') }}" alt="Strip Plot">-->
         </div>
