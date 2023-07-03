@@ -67,9 +67,27 @@
             {{ bivariate_analysis_0 | safe }}
             <h3>Correlation matrix (Spearman correlation)</h3>
             {{ bivariate_analysis_1 | safe }}
-        <!--<h3>Pair plot</h3>
-        <img src="{{ url_for('static', filename='images/pairplot.png') }}" alt="Strip Plot">-->
+            <h3>Selected scatter plots</h3>
+            <p>We select up to five pairs of variables with the highest mutual information. These are likely to be related in some fashion, so it is worth visualizing their scatter plots.</p>
+        <img src="{{ url_for('static', filename='images/mipairsscatter.png') }}" alt="Scatter Plots of Mutually informative variables">
         </div>
+
     </div>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+        <script>
+    $(document).ready(function(){
+        $("#bivariate_analysis table td").each(function() {
+            var num = parseFloat($(this).text());
+            if (!isNaN(num)) {
+                if (num > 0.5) {
+                    $(this).addClass('positive');
+                }
+                if (num < -0.5) {
+                    $(this).addClass('negative');
+                }
+            }
+        });
+    });
+</script>
 </body>
 </html>

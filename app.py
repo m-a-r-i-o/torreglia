@@ -8,9 +8,37 @@ import seaborn as sns
 import os
 import csv
 from diptest import diptest
-
+from sklearn.feature_selection import mutual_info_regression
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 app = Flask(__name__)
+
+def calculate_mutual_info(df):
+    mutual_info_dict = {}
+    cols = df.columns
+    for i in range(len(cols)):
+        for j in range(i+1, len(cols)):
+            mutual_info = mutual_info_regression(df[[cols[i]]], df[cols[j]])
+            mutual_info_dict[(cols[i], cols[j])] = mutual_info[0]
+    return mutual_info_dict
+
+def get_top_k_pairs(mutual_info_dict, k):
+    sorted_pairs = sorted(mutual_info_dict.items(), key=lambda item: item[1], reverse=True)
+    return [pair[0] for pair in sorted_pairs[:k]]
+
+def plot_scatter_plots(df, pairs):
+    n = len(pairs)
+    fig, axs = plt.subplots(n, figsize=(8, 6*n))  # Set the total figure size and create subplots
+
+    for i, pair in enumerate(pairs):
+        sns.regplot(data=df, x=pair[0], y=pair[1], lowess=True, scatter_kws={'color': '#A0A0A0'}, line_kws={'color': '#222222'}, ax=axs[i])
+        #sns.regplot(data=df, x=pair[0], y=pair[1], lowess=True, ax=axs[i], color = "#A0A0A0")  # Specify the subplot to draw on
+        #sns.scatterplot(data=df, x=pair[0], y=pair[1], ax=axs[i], color = "#A0A0A0")  # Specify the subplot to draw on
+        #axs[i].set_title(f'{pair[0]} vs {pair[1]}')
+
+    plt.tight_layout()
+    plt.savefig("static/images/mipairsscatter.png", bbox_inches='tight') 
 
 def round_to_significant_digits(num, sig_digits):
     if num != 0:
@@ -54,6 +82,19 @@ def remove_second_header(df):
 
 def binrule(u):
     return int(1.5*(1 + np.log(len(u))/np.log(2.0)))
+
+def fit_line_or_poly(x, y, **kwargs):
+    """Fit a line or a 2nd degree polynomial, based on the p-value of the 2nd degree coefficient."""
+    poly_coef, residuals, rank, singular_values, rcond = np.polyfit(x, y, 2, full=True)
+    _, _, r_value, p_value, _ = stats.linregress(x, y)
+
+    x_sorted = sorted(x)
+
+    if p_value < 0.05:  # If the 2nd degree coefficient is significant
+        plt.plot(x_sorted, np.poly1d(poly_coef)(x_sorted), color='r', alpha=0.5)  # Plot 2nd degree polynomial
+    else:
+        plt.plot(x, np.poly1d(poly_coef[1:])(x), color='g', alpha=0.5)  # Plot line
+
 
 @app.route('/', methods=['GET', 'POST'])
 def upload():
@@ -116,9 +157,8 @@ def upload():
                         'skewness': round_to_significant_digits(skew(df[column]), 2),
                         'kurtosis': round_to_significant_digits(kurtosis(df[column]), 2),
                         'min': round_to_significant_digits(df[column].min(), 2),
-                        'max': round_to_significant_digits(df[column].max(), 2),
                         'median': round_to_significant_digits(df[column].median(), 2),
-                        'IQR': round_to_significant_digits(df[column].quantile(0.75) - df[column].quantile(0.25),2),
+                        'max': round_to_significant_digits(df[column].max(), 2),
                     }
                     univariate_analysis_1[column] = {
                         'Unimodal': unimodal_verdict,
@@ -131,8 +171,8 @@ def upload():
             print("Bivariate analysis")
             # Bivariate analysis: correlation matrix using Spearman correlation
             print("Computing correlation matrix")
-            corr_matrix_0 = (df.corr(method='pearson')).applymap(lambda x: round_to_significant_digits(x, 2)).to_html()
-            corr_matrix_1 = (df.corr(method='spearman')).applymap(lambda x: round_to_significant_digits(x, 2)).to_html()
+            corr_matrix_0 = (df.corr(method='pearson')).applymap(lambda x: np.round(x, 2)).to_html()
+            corr_matrix_1 = (df.corr(method='spearman')).applymap(lambda x: np.round(x, 2)).to_html()
 
             na_count_nice = na_count[na_count>0]
             if(len(na_count_nice) == 0):
@@ -141,7 +181,7 @@ def upload():
                 na_count_nice = na_count_nice.to_dict()
                 na_count_nice = ', '.join(f'{k} ({v})' for k, v in na_count_nice.items())
 
-            print("Creating strip plot")
+            print("Creating boxplot")
             # Filter out non-numeric columns
             df_numeric = df.select_dtypes(include=['int64', 'float64'])
 
@@ -172,12 +212,30 @@ def upload():
                 plt.savefig(f'static/images/histograms/histogram_{column}.png', bbox_inches='tight')  # Save the figure
                 plt.close()  # Close the figure
 
-            # Create a pair plot for the numeric variables
+            # Calculating mutual information between variables
+            mutual_info_dict = calculate_mutual_info(df_numeric)
+            k_mi = 5
+            top_pairs = get_top_k_pairs(mutual_info_dict, k_mi)
+            plot_scatter_plots(df, top_pairs)
+
+            # Create an enhanced pair plot for the numeric variables
+            # Create a PairGrid
+            #g = PairGrid(df_numeric)
+
+            # Map the custom function to the lower triangle
+            #g.map_lower(fit_line_or_poly)
+
+            # Map a histogram to the diagonal
+            #g.map_diag(plt.hist)
+
+            # Map a scatterplot to the upper triangle
+            #g.map_upper(plt.scatter, s=3)
+
             #print("Creating pair plot")
             #pair_plot = sns.pairplot(df_numeric)
 
             # save the figure
-            #pair_plot.savefig('static/images/pairplot.png')
+            #g.savefig('static/images/pairplot.png')
 
             #plt.close()
             print("Finishing off")
@@ -196,7 +254,8 @@ def upload():
                 columns_with_NAs=na_count_nice,
                 bivariate_analysis_0=corr_matrix_0,
                 bivariate_analysis_1=corr_matrix_1,                
-                num_columns_list=df_numeric.columns.tolist()  # add this line
+                num_columns_list=df_numeric.columns.tolist(),
+                mi_pairs = top_pairs
             )
     return render_template('upload.html')
 

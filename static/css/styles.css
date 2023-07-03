@@ -27,8 +27,8 @@ h2, h3 {
 header {
     background-color: #333;
     color: #FFF;
-    padding-top: 10px;
-    min-height: 25px;
+    padding-top: 5px;
+    min-height: 15px;
 }
 
 header a {
@@ -181,6 +181,14 @@ input[type="file"]:hover {
 input[type="submit"]:hover {
     opacity: 1;
 }
+
+.positive {
+            color: #00a;
+        }
+
+.negative {
+            color: #800;
+        }
 
 
 /* This will style the header */
