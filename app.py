@@ -19,36 +19,9 @@ def upload():
     if request.method == 'POST':
         file = request.files['datafile']
         if file:
-            if is_binary(file):
-                return render_template('error.html', error_message="The file appears to be binary, not csv")
-            print("Detecting csv separator")
-            sep = detect_separator(file)
-            print("Reading in the file")
-            try:
-                df = pd.read_csv(file, sep=sep, skipinitialspace=True, na_values=['NA', 'na', 'N/A', 'n/a', 'nan', 'NaN', 'NAN'])
-            except Exception as e:
-                return render_template('error.html', error_message=str(e))
-            df = df.applymap(lambda x: x.strip() if type(x) is str else x) #strip trailing spaces between commas
-            #df = remove_second_header(df)
+            df = read_input_file(file)
 
-            init_num_rows = df.shape[0]
-            print("Computing NA statistics")
-            # NAs and duplicated
-            df_no_nan = df.dropna(axis=0, how='any')
-            num_rows_no_nan = df_no_nan.shape[0]
-
-            duplicates = df_no_nan.duplicated()
-            num_duplicated_rows = duplicates.sum()
-
-            na_count = df.isna().sum()
-
-            #Sanitize column names
-            print("Sanitizing column names")
-            df = sanitize_column_names(df)
-
-            # Preprocessing: remove NAs
-            print("Removing NAs")
-            df.dropna(inplace=True)
+            df, init_num_rows, num_rows_no_nan, num_duplicated_rows, na_count = preprocessing_df(df)
 
             # Univariate analysis
             print("Univariate analysis")
@@ -111,11 +84,8 @@ def upload():
             # Reshape the data.
             df_melted = pd.melt(df_numeric)
 
-            # Create the violin plot.
+            # Create the box plot.
             plt.figure(figsize=(12,6))  
-            #sns.violinplot(y="variable", x="value", data=df_melted, inner=None)
-
-            # Overlay a box plot.
             sns.boxplot(y="variable", x="value", data=df_melted, color="#A0A0A0")
 
             # Save the figure

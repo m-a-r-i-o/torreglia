@@ -71,6 +71,7 @@
             {{ bivariate_analysis_1 | safe }}
             <h3>Selected scatter plots</h3>
             <p>We select up to five pairs of variables with the highest mutual information. These are likely to be related in some fashion, so it is worth visualizing their scatter plots.</p>
+            <p>Here we overplot a lowess trendline onto the scatter plot to guide the eye.</p>
         <img src="{{ url_for('static', filename='images/mipairsscatter.png') }}" alt="Scatter Plots of Mutually informative variables">
             <p>Keep in mind that if your dataset has more columns than rows this may fail.</p>
         </div>

@@ -4,6 +4,42 @@ import matplotlib.pyplot as plt
 from sklearn.feature_selection import mutual_info_regression 
 import seaborn as sns
 
+def read_input_file(file):
+    if is_binary(file):
+        return render_template('error.html', error_message="The file appears to be binary, not csv")
+    print("Detecting csv separator")
+    sep = detect_separator(file)
+    print("Reading in the file")
+    try:
+        df = pd.read_csv(file, sep=sep, skipinitialspace=True, na_values=['NA', 'na', 'N/A', 'n/a', 'nan', 'NaN', 'NAN'])
+    except Exception as e:
+        return render_template('error.html', error_message=str(e))
+    df = df.applymap(lambda x: x.strip() if type(x) is str else x) #strip trailing spaces between commas
+    #df = remove_second_header(df)
+    return(df)
+
+def preprocessing_df(df):
+    init_num_rows = df.shape[0]
+    print("Computing NA statistics")
+    # NAs and duplicated
+    df_no_nan = df.dropna(axis=0, how='any')
+    num_rows_no_nan = df_no_nan.shape[0]
+
+    duplicates = df_no_nan.duplicated()
+    num_duplicated_rows = duplicates.sum()
+
+    na_count = df.isna().sum()
+
+    #Sanitize column names
+    print("Sanitizing column names")
+    df = sanitize_column_names(df)
+
+    # Preprocessing: remove NAs
+    print("Removing NAs")
+    df.dropna(inplace=True)
+
+    return df, init_num_rows, num_rows_no_nan, num_duplicated_rows, na_count
+
 def remove_second_header(df):
     if len(df) < 3:  # If there are less than 3 rows, do nothing
         return df
@@ -115,7 +151,7 @@ def plot_scatter_plots(df, pairs):
     fig, axs = plt.subplots(n, figsize=(8, 6*n))  # Set the total figure size and create subplots
 
     for i, pair in enumerate(pairs):
-        sns.regplot(data=df, x=pair[0], y=pair[1], lowess=True, scatter_kws={'color': '#A0A0A0'}, line_kws={'color': '#222222'}, ax=axs[i])
+        sns.regplot(data=df, x=pair[0], y=pair[1], lowess=True, scatter_kws={'color': '#A0A0A0'}, line_kws={'color': '#D1CAC0'}, ax=axs[i])
         #sns.regplot(data=df, x=pair[0], y=pair[1], lowess=True, ax=axs[i], color = "#A0A0A0")  # Specify the subplot to draw on
         #sns.scatterplot(data=df, x=pair[0], y=pair[1], ax=axs[i], color = "#A0A0A0")  # Specify the subplot to draw on
         #axs[i].set_title(f'{pair[0]} vs {pair[1]}')
