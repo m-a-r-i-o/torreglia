@@ -3,6 +3,35 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.feature_selection import mutual_info_regression 
 import seaborn as sns
+from scipy.interpolate import make_interp_spline
+
+
+def parallel_coordinate_plot(df):
+    # Assume df is your DataFrame
+    df = df.astype(float)  # Make sure all data is float
+    df_norm = (df - df.min()) / (df.max() - df.min())  # Normalize the data
+
+    x = range(df.shape[1])  # x coordinates for each column
+
+    plt.figure(figsize=(10, 8))
+
+    for i in range(df_norm.shape[0]):
+        y = df_norm.iloc[i, :]  # y coordinates for each row
+
+        # Make a spline interpolation
+        spl = make_interp_spline(x, y, k=3)  # type: BSpline
+        xnew = np.linspace(min(x), max(x), 500)  
+        ynew = spl(xnew)
+        plt.plot(xnew, ynew, alpha=0.3, color="#222222")
+
+    for i in x:
+        plt.axvline(x=i, linestyle='dotted', color='#888888')
+
+    plt.xticks(x, df.columns, rotation=90)
+
+    plt.savefig("static/images/parcoord.png", bbox_inches='tight') 
+    plt.close()
+
 
 def read_input_file(file):
     if is_binary(file):
@@ -151,7 +180,7 @@ def plot_scatter_plots(df, pairs):
     fig, axs = plt.subplots(n, figsize=(8, 6*n))  # Set the total figure size and create subplots
 
     for i, pair in enumerate(pairs):
-        sns.regplot(data=df, x=pair[0], y=pair[1], lowess=True, scatter_kws={'color': '#A0A0A0'}, line_kws={'color': '#D1CAC0'}, ax=axs[i])
+        sns.regplot(data=df, x=pair[0], y=pair[1], lowess=True, scatter_kws={'color': '#888888'}, line_kws={'color': '#C50000'}, ax=axs[i])
         #sns.regplot(data=df, x=pair[0], y=pair[1], lowess=True, ax=axs[i], color = "#A0A0A0")  # Specify the subplot to draw on
         #sns.scatterplot(data=df, x=pair[0], y=pair[1], ax=axs[i], color = "#A0A0A0")  # Specify the subplot to draw on
         #axs[i].set_title(f'{pair[0]} vs {pair[1]}')

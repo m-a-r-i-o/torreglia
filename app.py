@@ -11,8 +11,15 @@ from diptest import diptest
 import matplotlib.pyplot as plt
 import seaborn as sns
 from utils.helpers import *
+import matplotlib as mpl
 
 app = Flask(__name__)
+
+mpl.rcParams['axes.edgecolor'] = '#888888'
+mpl.rcParams['axes.labelcolor'] = '#888888'
+mpl.rcParams['xtick.color'] = '#888888'
+mpl.rcParams['ytick.color'] = '#888888'
+mpl.rcParams['text.color'] = '#888888'
 
 @app.route('/', methods=['GET', 'POST'])
 def upload():
@@ -113,6 +120,10 @@ def upload():
                 plot_scatter_plots(df, top_pairs)
             except Exception as e:
                 print(str(e))
+
+            #parallel coordinate plot
+            parallel_coordinate_plot(df_numeric)
+
             # Create an enhanced pair plot for the numeric variables
             # Create a PairGrid
             #g = PairGrid(df_numeric)
