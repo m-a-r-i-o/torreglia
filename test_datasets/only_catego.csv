@@ -1,0 +1,33 @@
+a, b, c, d
+rook,white,Oui,0 
+rook,white,Oui,0
+horse,white,Oui,0
+horse,white,Oui,0
+bishop,white,Non,0
+bishop,white,Non,0
+queen,white,Non,0
+king,white,Non,0
+pawn,white,Non,0
+pawn,white,Non,0
+pawn,white,Non,0
+pawn,white,Non,0
+pawn,white,Non,"the emperor of Veneto"
+pawn,white,Non,0
+pawn,white,Non,emelag
+pawn,white,Non,emelag
+rook,black,Non,emelag
+rook,black,Oui,0
+horse,black,Oui,0
+horse,black,Oui,0
+bishop,black,Oui,"the emperor of Veneto"
+bishop,black,Non,"the emperor of Veneto"
+queen,black,Non,'the emperor of Veneto'
+king,black,Non,0
+pawn,black,Oui,"the emperor of Veneto"
+pawn,black,Oui,0
+pawn,black,Oui,0
+pawn,black,Oui,0
+pawn,black,Oui,0
+pawn,black,Non,0
+pawn,black,Non,"the emperor of Veneto"
+pawn,black,Oui,0

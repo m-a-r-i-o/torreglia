@@ -16,24 +16,29 @@ import matplotlib as mpl
 app = Flask(__name__)
 
 mpl.rcParams['axes.edgecolor'] = '#888888'
-mpl.rcParams['axes.labelcolor'] = '#888888'
-mpl.rcParams['xtick.color'] = '#888888'
-mpl.rcParams['ytick.color'] = '#888888'
-mpl.rcParams['text.color'] = '#888888'
+mpl.rcParams['axes.labelcolor'] = '#222222'
+mpl.rcParams['xtick.color'] = '#555555'
+mpl.rcParams['ytick.color'] = '#555555'
+mpl.rcParams['text.color'] = '#222222'
+
 
 @app.route('/', methods=['GET', 'POST'])
 def upload():
     if request.method == 'POST':
         file = request.files['datafile']
         if file:
-            df = read_input_file(file)
+            try:
+                df = read_input_file(file)
+            except Exception as e:
+                return render_template('error.html', error_message=str(e))
 
             df, init_num_rows, num_rows_no_nan, num_duplicated_rows, na_count = preprocessing_df(df)
 
             # Univariate analysis
             print("Univariate analysis")
             univariate_analysis_0 = {}
-            univariate_analysis_1 = {}            
+            univariate_analysis_1 = {}
+            cat_stats = {}
             for column in df.columns:
                 if df[column].dtype in ['int64', 'float64']:
                     print("Testing unimodality")
@@ -71,11 +76,13 @@ def upload():
                         'Lognormal?': lognormal_verdict,
                         'p_logn': round_to_significant_digits(lognormal_p, 2)
                     }
-            print("Bivariate analysis")
-            # Bivariate analysis: correlation matrix using Spearman correlation
-            print("Computing correlation matrix")
-            corr_matrix_0 = (df.corr(method='pearson')).applymap(lambda x: np.round(x, 2)).to_html()
-            corr_matrix_1 = (df.corr(method='spearman')).applymap(lambda x: np.round(x, 2)).to_html()
+            
+            df_numeric = df.select_dtypes(include=['int64', 'float64'])
+            df_non_numeric = df.select_dtypes(exclude=['int64', 'float64'])
+            
+            if df_non_numeric.shape[1] > 0:
+                barchart_for_categorical_vars(df_non_numeric)
+                cat_stats = calculate_categorical_stats(df_non_numeric).to_html(index=False)
 
             na_count_nice = na_count[na_count>0]
             if(len(na_count_nice) == 0):
@@ -84,45 +91,52 @@ def upload():
                 na_count_nice = na_count_nice.to_dict()
                 na_count_nice = ', '.join(f'{k} ({v})' for k, v in na_count_nice.items())
 
-            print("Creating boxplot")
-            # Filter out non-numeric columns
-            df_numeric = df.select_dtypes(include=['int64', 'float64'])
+            corr_matrix_0 = {}
+            corr_matrix_1 = {}
+            if df_numeric.shape[1] > 0:
+                print("Bivariate analysis")
+                # Bivariate analysis: correlation matrix using Spearman correlation
+                print("Computing correlation matrix")
+                corr_matrix_0 = (df.corr(method='pearson')).applymap(lambda x: np.round(x, 2)).to_html()
+                corr_matrix_1 = (df.corr(method='spearman')).applymap(lambda x: np.round(x, 2)).to_html()
 
-            # Reshape the data.
-            df_melted = pd.melt(df_numeric)
+                print("Creating boxplot")
 
-            # Create the box plot.
-            plt.figure(figsize=(12,6))  
-            sns.boxplot(y="variable", x="value", data=df_melted, color="#A0A0A0")
+                # Reshape the data.
+                df_melted = pd.melt(df_numeric)
 
-            # Save the figure
-            plt.savefig("static/images/violin_plot.png", bbox_inches='tight') 
-            plt.close()
-            if not os.path.exists('static/images/histograms'):
-                os.makedirs('static/images/histograms')
+                # Create the box plot.
+                plt.figure(figsize=(12,6))  
+                sns.boxplot(y="variable", x="value", data=df_melted, color="#A0A0A0")
 
-            # For each column in the DataFrame, create a histogram and save it as an image.
-            print("Creating histograms")
-            for column in df_numeric.columns:
-                plt.figure()  # Create a new figure
-                #sns.histplot(df_numeric[column], kde=False, bins = int(1.5*np.sqrt(df_numeric.shape[0])), color='gray', edgecolor=None)  # Create the histogram
-                plt.hist(df_numeric[column], color='#A0A0A0', edgecolor=None, bins=binrule(df_numeric[column]))
-                plt.xlabel(column)
-                plt.ylabel('Counts')
-                plt.savefig(f'static/images/histograms/histogram_{column}.png', bbox_inches='tight')  # Save the figure
-                plt.close()  # Close the figure
+                # Save the figure
+                plt.savefig("static/images/violin_plot.png", bbox_inches='tight') 
+                plt.close()
+                if not os.path.exists('static/images/histograms'):
+                    os.makedirs('static/images/histograms')
 
-            # Calculating mutual information between variables
-            try:
-                mutual_info_dict = calculate_mutual_info(df_numeric)
-                k_mi = 5
-                top_pairs = get_top_k_pairs(mutual_info_dict, k_mi)
-                plot_scatter_plots(df, top_pairs)
-            except Exception as e:
-                print(str(e))
+                # For each column in the DataFrame, create a histogram and save it as an image.
+                print("Creating histograms")
+                for column in df_numeric.columns:
+                    plt.figure()  # Create a new figure
+                    #sns.histplot(df_numeric[column], kde=False, bins = int(1.5*np.sqrt(df_numeric.shape[0])), color='gray', edgecolor=None)  # Create the histogram
+                    plt.hist(df_numeric[column], color='#A0A0A0', edgecolor=None, bins=binrule(df_numeric[column]))
+                    plt.xlabel(column)
+                    plt.ylabel('Counts')
+                    plt.savefig(f'static/images/histograms/histogram_{column}.png', bbox_inches='tight')  # Save the figure
+                    plt.close()  # Close the figure
 
-            #parallel coordinate plot
-            parallel_coordinate_plot(df_numeric)
+                # Calculating mutual information between variables
+                try:
+                    mutual_info_dict = calculate_mutual_info(df_numeric)
+                    k_mi = 5
+                    top_pairs = get_top_k_pairs(mutual_info_dict, k_mi)
+                    plot_scatter_plots(df, top_pairs)
+                except Exception as e:
+                    print(str(e))
+
+                #parallel coordinate plot
+                parallel_coordinate_plot(df_numeric)
 
             # Create an enhanced pair plot for the numeric variables
             # Create a PairGrid
@@ -161,6 +175,7 @@ def upload():
                 bivariate_analysis_0=corr_matrix_0,
                 bivariate_analysis_1=corr_matrix_1,                
                 num_columns_list=df_numeric.columns.tolist(),
+                cat_stats=cat_stats
             )
     return render_template('upload.html')
 

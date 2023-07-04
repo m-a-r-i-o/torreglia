@@ -5,6 +5,54 @@ from sklearn.feature_selection import mutual_info_regression
 import seaborn as sns
 from scipy.interpolate import make_interp_spline
 
+from scipy.stats import entropy
+
+def read_input_file(file):
+    if is_binary(file):
+        return render_template('error.html', error_message="The file appears to be binary, not csv")
+    print("Detecting csv separator")
+    sep = detect_separator(file)
+    print("Reading in the file")
+    df = pd.read_csv(file, sep=sep, skipinitialspace=True, na_values=['NA', 'na', 'N/A', 'n/a', 'nan', 'NaN', 'NAN'])
+    df = df.applymap(lambda x: x.strip() if type(x) is str else x) #strip trailing spaces between commas
+    #df = remove_second_header(df)
+    return(df)
+
+
+def calculate_categorical_stats(df):
+    stats = []
+    categorical_columns = df.columns
+
+    for col in categorical_columns:
+        freq = df[col].value_counts()
+        rel_freq = df[col].value_counts(normalize=True)
+        mode = df[col].mode().iloc[0]
+        entropy_value = entropy(rel_freq)
+
+        stats.append([col, freq.to_string(header=None).replace('\n', '; '), rel_freq.to_string(header=None).replace('\n', '; '), mode, entropy_value])
+
+    stats_df = pd.DataFrame(stats, columns=['Variable', 'Counts', 'Relative Frequencies', 'Mode', 'Entropy'])
+
+    return stats_df
+
+
+def barchart_for_categorical_vars(df):
+    cat_cols = df.columns
+    fig, axs = plt.subplots(len(cat_cols), 1, figsize=(10, 5*len(cat_cols)))
+
+    if len(cat_cols) == 1:
+        axs = [axs,]
+
+    for i, col in enumerate(cat_cols):
+        # Count the column data
+        col_count = df[col].value_counts()
+        # Draw bar plot (horizontal)
+        axs[i].barh(col_count.index, col_count.values, color='#A0A0A0')
+        axs[i].set_title(f'Distribution of {col}')
+
+    plt.tight_layout()
+    plt.savefig("static/images/barchart.png", bbox_inches='tight') 
+    plt.close()
 
 def parallel_coordinate_plot(df):
     # Assume df is your DataFrame
@@ -28,24 +76,10 @@ def parallel_coordinate_plot(df):
         plt.axvline(x=i, linestyle='dotted', color='#888888')
 
     plt.xticks(x, df.columns, rotation=90)
+    plt.ylabel('Value (scaled to [0,1])')
 
     plt.savefig("static/images/parcoord.png", bbox_inches='tight') 
     plt.close()
-
-
-def read_input_file(file):
-    if is_binary(file):
-        return render_template('error.html', error_message="The file appears to be binary, not csv")
-    print("Detecting csv separator")
-    sep = detect_separator(file)
-    print("Reading in the file")
-    try:
-        df = pd.read_csv(file, sep=sep, skipinitialspace=True, na_values=['NA', 'na', 'N/A', 'n/a', 'nan', 'NaN', 'NAN'])
-    except Exception as e:
-        return render_template('error.html', error_message=str(e))
-    df = df.applymap(lambda x: x.strip() if type(x) is str else x) #strip trailing spaces between commas
-    #df = remove_second_header(df)
-    return(df)
 
 def preprocessing_df(df):
     init_num_rows = df.shape[0]
