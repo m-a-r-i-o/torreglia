@@ -5,8 +5,31 @@ from sklearn.feature_selection import mutual_info_regression
 import seaborn as sns
 from scipy.interpolate import make_interp_spline
 from lingam.direct_lingam import DirectLiNGAM
-
 from scipy.stats import entropy
+import re
+from dateutil.parser import parse
+
+def get_sample_rows(df):
+    ksample = 3
+    # Get first and last five rows
+    first_rows = df.head(ksample)
+    last_rows = df.tail(ksample)
+
+    # Make sure there are more than 10 rows, otherwise just return the dataframe
+    if len(df) <= 3*ksample:
+        return df
+
+    # Exclude first and last five rows when sampling
+    middle_rows = df.iloc[ksample:-ksample].sample(ksample)
+
+    # Create a separator row
+    separator = pd.DataFrame({col: '...' for col in df.columns}, index=[0])
+
+    # Concatenate the dataframes
+    sample_df = pd.concat([first_rows, separator, middle_rows, separator, last_rows], ignore_index=True)
+
+    return sample_df
+
 
 def read_input_file(file):
     if is_binary(file):
@@ -19,22 +42,51 @@ def read_input_file(file):
     #df = remove_second_header(df)
     return(df)
 
+def is_date(string):
+	# First, check if the string is a string data type
+    if not isinstance(string, str):
+        return False
 
-def calculate_categorical_stats(df):
+    date_formats = ["\d{1,2}-\d{1,2}-\d{4}", "\d{4}-\d{1,2}-\d{1,2}", "\d{1,2}:\d{1,2}:\d{4}"]
+
+    if any(re.match(pattern, string) for pattern in date_formats):
+        try:
+            parse(string)
+            return True
+        except ValueError:
+            return False
+    else:
+        return False
+
+
+
+def is_date_column(df, column):
+    non_na_values = df[column].dropna()
+    if non_na_values.empty:
+        return False
+    return non_na_values.apply(is_date).all()
+
+def get_date_columns(df):
+    date_columns = [col for col in df.columns if is_date_column(df, col)]
+    return date_columns
+
+
+def calculate_categorical_stats(df, top_n=20):
     stats = []
     categorical_columns = df.columns
 
     for col in categorical_columns:
-        freq = df[col].value_counts()
+        freq = df[col].value_counts().head(top_n)
         rel_freq = df[col].value_counts(normalize=True)
         mode = df[col].mode().iloc[0]
         entropy_value = entropy(rel_freq)
+        rel_freq = rel_freq.head(top_n)
 
         stats.append([col, freq.to_string(header=None).replace('\n', '; '), rel_freq.to_string(header=None).replace('\n', '; '), mode, entropy_value])
 
     stats_df = pd.DataFrame(stats, columns=['Variable', 'Counts', 'Relative Frequencies', 'Mode', 'Entropy'])
 
-    return stats_df
+    return stats_df 
 
 def find_constant_columns(df):
     constant_columns = []
@@ -92,6 +144,9 @@ def parallel_coordinate_plot(df):
 def preprocessing_df(df):
     init_num_rows = df.shape[0]
     print("Computing NA statistics")
+
+    date_columns = get_date_columns(df)
+
     # NAs and duplicated
     df_no_nan = df.dropna(axis=0, how='any')
     num_rows_no_nan = df_no_nan.shape[0]
@@ -112,7 +167,7 @@ def preprocessing_df(df):
     print("Removing NAs")
     df.dropna(inplace=True)
 
-    return df, init_num_rows, num_rows_no_nan, num_duplicated_rows, na_count, constant_columns
+    return df, init_num_rows, num_rows_no_nan, num_duplicated_rows, na_count, constant_columns, date_columns
 
 def remove_second_header(df):
     if len(df) < 3:  # If there are less than 3 rows, do nothing

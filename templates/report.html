@@ -22,6 +22,11 @@
     <div class="container">
         <h1>Data Analysis Report for <em>{{file}}</em></h1>
 
+<h2>Dataset snippet</h2>
+{{ sampled_df_table | safe }} 
+
+<h2>General information</h2>
+
 <table>
     <tr>
         <td>Number of Columns:</td>
@@ -48,7 +53,7 @@
         <td>{{ num_numeric }}</td>
     </tr>
     <tr>
-        <td>Number of Categorical columns:</td>
+        <td>Number of Categorical or Date Columns:</td>
         <td>{{ num_categorical }}</td>
     </tr>
     <tr>
@@ -56,9 +61,13 @@
         <td>{{ num_duplicated_instances }}</td>
     </tr>
     <tr>
-        <td>Constant columns:</td>
+        <td>Constant Columns:</td>
         <td>{% for column in constant_columns %}{{column}}<br>{% endfor %}</td>
     <tr>
+    <tr>
+        <td>Date Columns:</td>
+        <td>{% for column in date_columns %}{{column}}<br>{% endfor %}</td>
+    <tr>   
 
 </table>
 
@@ -79,6 +88,7 @@
             {% if num_categorical > 0 %}
             <h3>Summary table for categorical variables</h3>
             {{ cat_stats | safe }}
+            <p>Showing levels for each categorical variables up to 20 individual levels.</p>
             <h3>Barchart for categorical variables</h3>
         <img src="{{ url_for('static', filename='images/barchart.png') }}" alt="Barchart for categorical variables">
             {% endif %}

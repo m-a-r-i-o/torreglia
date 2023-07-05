@@ -32,7 +32,10 @@ def upload():
             except Exception as e:
                 return render_template('error.html', error_message=str(e))
 
-            df, init_num_rows, num_rows_no_nan, num_duplicated_rows, na_count, constant_columns = preprocessing_df(df)
+            sample_df = get_sample_rows(df)
+            sampled_df_table = sample_df.to_html(index=False)
+
+            df, init_num_rows, num_rows_no_nan, num_duplicated_rows, na_count, constant_columns, date_columns = preprocessing_df(df)
 
             # Univariate analysis
             print("Univariate analysis")
@@ -160,6 +163,9 @@ def upload():
             if len(constant_columns) == 0:
                 constant_columns = ""
 
+            if len(date_columns) == 0:
+                date_columns = ""
+
             #plt.close()
             print("Finishing off")
             return render_template(
@@ -170,6 +176,7 @@ def upload():
                 num_instances_nan = init_num_rows - num_rows_no_nan,
                 num_duplicated_instances = num_duplicated_rows,
                 constant_columns = constant_columns,
+                date_columns = date_columns,
                 num_columns=df.shape[1],
                 num_numeric=len(df.select_dtypes(include=['int64', 'float64']).columns),
                 num_categorical=len(df.select_dtypes(include=['object']).columns),
@@ -179,7 +186,8 @@ def upload():
                 bivariate_analysis_0=corr_matrix_0,
                 bivariate_analysis_1=corr_matrix_1,                
                 num_columns_list=df_numeric.columns.tolist(),
-                cat_stats=cat_stats
+                cat_stats=cat_stats,
+                sampled_df_table = sampled_df_table
             )
     return render_template('upload.html')
 
