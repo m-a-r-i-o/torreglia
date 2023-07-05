@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 from sklearn.feature_selection import mutual_info_regression 
 import seaborn as sns
 from scipy.interpolate import make_interp_spline
+from lingam.direct_lingam import DirectLiNGAM
 
 from scipy.stats import entropy
 
@@ -34,6 +35,13 @@ def calculate_categorical_stats(df):
     stats_df = pd.DataFrame(stats, columns=['Variable', 'Counts', 'Relative Frequencies', 'Mode', 'Entropy'])
 
     return stats_df
+
+def find_constant_columns(df):
+    constant_columns = []
+    for col in df.columns:
+        if df[col].nunique() <= 1:
+            constant_columns.append(col)
+    return constant_columns
 
 
 def barchart_for_categorical_vars(df):
@@ -97,11 +105,14 @@ def preprocessing_df(df):
     print("Sanitizing column names")
     df = sanitize_column_names(df)
 
+    constant_columns = find_constant_columns(df)
+    df = df.drop(columns=constant_columns)
+
     # Preprocessing: remove NAs
     print("Removing NAs")
     df.dropna(inplace=True)
 
-    return df, init_num_rows, num_rows_no_nan, num_duplicated_rows, na_count
+    return df, init_num_rows, num_rows_no_nan, num_duplicated_rows, na_count, constant_columns
 
 def remove_second_header(df):
     if len(df) < 3:  # If there are less than 3 rows, do nothing
@@ -214,10 +225,25 @@ def plot_scatter_plots(df, pairs):
     fig, axs = plt.subplots(n, figsize=(8, 6*n))  # Set the total figure size and create subplots
 
     for i, pair in enumerate(pairs):
-        sns.regplot(data=df, x=pair[0], y=pair[1], lowess=True, scatter_kws={'color': '#888888'}, line_kws={'color': '#C50000'}, ax=axs[i])
-        #sns.regplot(data=df, x=pair[0], y=pair[1], lowess=True, ax=axs[i], color = "#A0A0A0")  # Specify the subplot to draw on
-        #sns.scatterplot(data=df, x=pair[0], y=pair[1], ax=axs[i], color = "#A0A0A0")  # Specify the subplot to draw on
-        #axs[i].set_title(f'{pair[0]} vs {pair[1]}')
+        # Prepare data for DirectLiNGAM
+        X = df[list(pair)].values
+
+        # Instantiate and fit DirectLiNGAM
+        model = DirectLiNGAM()
+        model.fit(X)
+
+        # Get the causal ordering
+        causal_order = model.causal_order_
+
+        # Check if the first variable is the cause (smaller index in causal_order)
+        if causal_order[0] < causal_order[1]:
+            axs[i].scatter(df[pair[0]], df[pair[1]], color = "#A0A0A0")
+            axs[i].set_xlabel(pair[0])
+            axs[i].set_ylabel(pair[1])
+        else:
+            axs[i].scatter(df[pair[1]], df[pair[0]], color = "#A0A0A0")
+            axs[i].set_xlabel(pair[1])
+            axs[i].set_ylabel(pair[0])
 
     plt.tight_layout()
     plt.savefig("static/images/mipairsscatter.png", bbox_inches='tight') 

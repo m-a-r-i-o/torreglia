@@ -32,7 +32,7 @@ def upload():
             except Exception as e:
                 return render_template('error.html', error_message=str(e))
 
-            df, init_num_rows, num_rows_no_nan, num_duplicated_rows, na_count = preprocessing_df(df)
+            df, init_num_rows, num_rows_no_nan, num_duplicated_rows, na_count, constant_columns = preprocessing_df(df)
 
             # Univariate analysis
             print("Univariate analysis")
@@ -86,7 +86,7 @@ def upload():
 
             na_count_nice = na_count[na_count>0]
             if(len(na_count_nice) == 0):
-                na_count_nice = "None"
+                na_count_nice = ""
             else:
                 na_count_nice = na_count_nice.to_dict()
                 na_count_nice = ', '.join(f'{k} ({v})' for k, v in na_count_nice.items())
@@ -129,7 +129,7 @@ def upload():
                 # Calculating mutual information between variables
                 try:
                     mutual_info_dict = calculate_mutual_info(df_numeric)
-                    k_mi = 5
+                    k_mi = 10 #maximum number of mutual info plots to display
                     top_pairs = get_top_k_pairs(mutual_info_dict, k_mi)
                     plot_scatter_plots(df, top_pairs)
                 except Exception as e:
@@ -157,6 +157,9 @@ def upload():
             # save the figure
             #g.savefig('static/images/pairplot.png')
 
+            if len(constant_columns) == 0:
+                constant_columns = ""
+
             #plt.close()
             print("Finishing off")
             return render_template(
@@ -166,6 +169,7 @@ def upload():
                 num_instances=df.shape[0],
                 num_instances_nan = init_num_rows - num_rows_no_nan,
                 num_duplicated_instances = num_duplicated_rows,
+                constant_columns = constant_columns,
                 num_columns=df.shape[1],
                 num_numeric=len(df.select_dtypes(include=['int64', 'float64']).columns),
                 num_categorical=len(df.select_dtypes(include=['object']).columns),

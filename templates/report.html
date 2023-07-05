@@ -21,21 +21,54 @@
 </header>
     <div class="container">
         <h1>Data Analysis Report for <em>{{file}}</em></h1>
-        <p>Number of Rows: {{ num_initial_instances }}</p>
-        <p>Number of Rows that contain NAs: {{ num_instances_nan }}</p>
-        <p>Number of Rows, after dropping NAs: {{ num_instances }}</p>
-        <p>Columns with NAs (NA count): {{ columns_with_NAs }} </p>
-        <p>Number of Columns: {{ num_columns }}</p>
-        <p>Number of Numeric Variables: {{ num_numeric }}</p>
-        <p>Number of Categorical Variables: {{ num_categorical }}</p>
-        <p>Number of Duplicated Rows: {{ num_duplicated_instances }}</p>
-        <p></p>
+
+<table>
+    <tr>
+        <td>Number of Columns:</td>
+        <td>{{ num_columns }}</td>
+    </tr>
+    <tr>
+        <td>Number of Rows:</td>
+        <td>{{ num_initial_instances }}</td>        
+    </tr>
+    <tr>
+        <td>Number of Rows that contain NAs:</td>
+        <td>{{ num_instances_nan }}</td>        
+    </tr>
+    <tr>
+        <td>Number of Rows, after dropping NAs:</td>
+        <td>{{ num_instances }}</td>
+    </tr>
+    <tr>
+        <td>Columns with NAs (NA count):</td>
+        <td>{{ columns_with_NAs }}</td>
+    </tr>
+    <tr>
+        <td>Number of Numeric Columns:</td>
+        <td>{{ num_numeric }}</td>
+    </tr>
+    <tr>
+        <td>Number of Categorical columns:</td>
+        <td>{{ num_categorical }}</td>
+    </tr>
+    <tr>
+        <td>Number of Duplicated Rows:</td>
+        <td>{{ num_duplicated_instances }}</td>
+    </tr>
+    <tr>
+        <td>Constant columns:</td>
+        <td>{% for column in constant_columns %}{{column}}<br>{% endfor %}</td>
+    <tr>
+
+</table>
+
         <!-- Display univariate analysis -->
         <h2>Univariate Analysis</h2>
         <div id="univariate_analysis">
         {% if num_numeric > 0 %}
         <h3> Descriptive statistics for continuous variables</h3>
             {{ univariate_analysis_0 | safe }}
+        <h3> Distribution tests </h3>
             {{ univariate_analysis_1 | safe }}
             <p>We test unimodality using Hartigan's dip test and normality  with Shapiro's test. Lognormality is tested by taking the log and testing for normality. The threshold for all p-values is 0.05.</p>
                     <p></p>            
@@ -80,10 +113,10 @@
             <h3>Correlation matrix (Spearman correlation)</h3>
             {{ bivariate_analysis_1 | safe }}
             <h3>Selected scatter plots</h3>
-            <p>We select up to five pairs of variables with the highest mutual information. These are likely to be related in some fashion, so it is worth visualizing their scatter plots.</p>
-            <p>Here we overplot a lowess trendline onto the scatter plot to guide the eye.</p>
+            <p>We select up to ten pairs of variables with the highest mutual information. These are likely to be related in some fashion, so it is worth visualizing their scatter plots.</p>
+            <p>We use DirectLINGAM to guess a causal order between each pair of variables, and we display the cause in the x-axis and the effect in the y-axis. Keep in mind that subject matter knowledge should be used to correctly ascertain causal relations.</p>
         <img src="{{ url_for('static', filename='images/mipairsscatter.png') }}" alt="Scatter Plots of Mutually informative variables">
-            <p>Keep in mind that if your dataset has more columns than rows this may fail.</p>
+            <p>If your dataset has more columns than rows this may fail.</p>
         <h2>Multivariate Analysis</h2>
         <h3>Parallel coordinate display</h3>
         <img src="{{ url_for('static', filename='images/parcoord.png') }}" alt="Parallel coordinate display">
