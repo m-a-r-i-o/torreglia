@@ -95,17 +95,21 @@ def find_constant_columns(df):
             constant_columns.append(col)
     return constant_columns
 
-
-def barchart_for_categorical_vars(df):
+def barchart_for_categorical_vars(df, top_n=20):
     cat_cols = df.columns
     fig, axs = plt.subplots(len(cat_cols), 1, figsize=(10, 5*len(cat_cols)))
 
-    if len(cat_cols) == 1:
-        axs = [axs,]
+    if not isinstance(axs, np.ndarray):
+        axs = np.array([axs])
 
     for i, col in enumerate(cat_cols):
         # Count the column data
         col_count = df[col].value_counts()
+        # Keep only top N values
+        top_values = col_count[:top_n]
+        # Replace the less frequent with 'Other'
+        df_tmp = df[col].replace({idx: 'Other' for idx in col_count.index[top_n:]})
+        col_count = df_tmp.value_counts()
         # Draw bar plot (horizontal)
         axs[i].barh(col_count.index, col_count.values, color='#A0A0A0')
         axs[i].set_title(f'Distribution of {col}')
@@ -113,6 +117,8 @@ def barchart_for_categorical_vars(df):
     plt.tight_layout()
     plt.savefig("static/images/barchart.png", bbox_inches='tight') 
     plt.close()
+
+
 
 def parallel_coordinate_plot(df):
     # Assume df is your DataFrame
@@ -276,8 +282,10 @@ def get_top_k_pairs(mutual_info_dict, k):
 
 def plot_scatter_plots(df, pairs):
     n = len(pairs)
-    n = max(2, n)
     fig, axs = plt.subplots(n, figsize=(8, 6*n))  # Set the total figure size and create subplots
+
+    if not isinstance(axs, np.ndarray):
+        axs = np.array([axs])
 
     for i, pair in enumerate(pairs):
         # Prepare data for DirectLiNGAM
