@@ -117,11 +117,11 @@
                 <p></p>
         <h2>Bivariate Analysis</h2>
                 <p></p>
-        <div id="bivariate_analysis">
             {% if num_categorical > 0 %}
             <h3>Categorical variables</h3>
             {{ cat_bivariate_stats | safe }}
             {% endif %}
+        <div id="bivariate_analysis">
             {% if num_numeric > 0 %}
             <h3>Correlation matrix for continuous variables</h3>
             {{ bivariate_analysis_0 | safe }}
@@ -135,11 +135,12 @@
         <h2>Multivariate Analysis</h2>
         {% if num_numeric > 3 %}
         <h3>Parallel coordinate display</h3>
-        {% endif %}
-        {% if 4 > num_numeric %}
-        <h3>3D scatterplot</h3>
-        {% endif %}
         <img src="{{ url_for('static', filename='images/parcoord.png') }}" alt="Parallel coordinate display">
+        {% endif %}
+        {% if num_numeric == 3 %}
+        <h3>3D scatterplot</h3>
+        <img src="{{ url_for('static', filename='images/parcoord.png') }}" alt="Parallel coordinate display">
+        {% endif %}
         </div>
     </div>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>

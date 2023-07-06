@@ -141,10 +141,10 @@ def upload():
                     print(str(e))
 
                 #parallel coordinate plot
-                if(df_numeric.shape[1] < 4):
-                    plot_3d_scatter(df_numeric)
-                else:
+                if(df_numeric.shape[1] > 3):
                     parallel_coordinate_plot(df_numeric)
+                elif(df_numeric.shape[1] == 3):
+                    plot_3d_scatter(df_numeric)
 
             # Create an enhanced pair plot for the numeric variables
             # Create a PairGrid
