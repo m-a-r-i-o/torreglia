@@ -8,6 +8,37 @@ from lingam.direct_lingam import DirectLiNGAM
 from scipy.stats import entropy
 import re
 from dateutil.parser import parse
+from scipy.stats import chi2_contingency, fisher_exact
+from itertools import combinations
+
+def cramers_v(x, y):
+    confusion_matrix = pd.crosstab(x,y)
+    chi2 = chi2_contingency(confusion_matrix)[0]
+    n = confusion_matrix.sum().sum()
+    phi2 = chi2/n
+    r, k = confusion_matrix.shape
+    phi2corr = max(0, phi2 - ((k-1)*(r-1))/(n-1))
+    rcorr = r - ((r-1)**2)/(n-1)
+    kcorr = k - ((k-1)**2)/(n-1)
+    return np.sqrt(phi2corr / min((kcorr-1), (rcorr-1)))
+
+def categorical_bivariate(categorical_df):
+    columns = categorical_df.columns
+    corr_data = []
+
+    for col1, col2 in combinations(columns, 2):
+        contingency_table = pd.crosstab(categorical_df[col1], categorical_df[col2])
+        min_value = contingency_table.values.min()
+
+        _, p_val, _, _ = chi2_contingency(contingency_table)
+        test_used = 'Chi-Squared'
+    
+        cramers_v_val = cramers_v(categorical_df[col1], categorical_df[col2])
+
+        corr_data.append([col1, col2, test_used, p_val, cramers_v_val])
+
+    correlation_df = pd.DataFrame(corr_data, columns=['Variable 1', 'Variable 2', 'Test Used', 'p-value', 'Cramér\'s V'])
+    return correlation_df
 
 def get_sample_rows(df):
     ksample = 3
@@ -118,6 +149,25 @@ def barchart_for_categorical_vars(df, top_n=20):
     plt.savefig("static/images/barchart.png", bbox_inches='tight') 
     plt.close()
 
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+
+def plot_3d_scatter(df):
+    fig = plt.figure(figsize=(8, 6))
+    ax = fig.add_subplot(111, projection='3d')
+
+    x = df.iloc[:, 0]
+    y = df.iloc[:, 1]
+    z = df.iloc[:, 2]
+
+    ax.scatter(x, y, z, color = "#A0A0A0")
+
+    ax.set_xlabel(df.columns[0])
+    ax.set_ylabel(df.columns[1])
+    ax.set_zlabel(df.columns[2])
+
+    plt.savefig("static/images/parcoord.png", bbox_inches='tight') 
+    plt.close()
 
 
 def parallel_coordinate_plot(df):

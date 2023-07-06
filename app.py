@@ -83,9 +83,11 @@ def upload():
             df_numeric = df.select_dtypes(include=['int64', 'float64'])
             df_non_numeric = df.select_dtypes(exclude=['int64', 'float64'])
             
+            cat_bivariate_stats = {}
             if df_non_numeric.shape[1] > 0:
                 barchart_for_categorical_vars(df_non_numeric)
                 cat_stats = calculate_categorical_stats(df_non_numeric).to_html(index=False)
+                cat_bivariate_stats = categorical_bivariate(df_non_numeric).to_html()
 
             na_count_nice = na_count[na_count>0]
             if(len(na_count_nice) == 0):
@@ -139,7 +141,10 @@ def upload():
                     print(str(e))
 
                 #parallel coordinate plot
-                parallel_coordinate_plot(df_numeric)
+                if(df_numeric.shape[1] < 4):
+                    plot_3d_scatter(df_numeric)
+                else:
+                    parallel_coordinate_plot(df_numeric)
 
             # Create an enhanced pair plot for the numeric variables
             # Create a PairGrid
@@ -187,7 +192,8 @@ def upload():
                 bivariate_analysis_1=corr_matrix_1,                
                 num_columns_list=df_numeric.columns.tolist(),
                 cat_stats=cat_stats,
-                sampled_df_table = sampled_df_table
+                sampled_df_table = sampled_df_table,
+                cat_bivariate_stats = cat_bivariate_stats
             )
     return render_template('upload.html')
 

@@ -112,13 +112,18 @@
     </tr>
 </table>
         </div>
-
+{% endif %}
         <!-- Display bivariate analysis -->
                 <p></p>
         <h2>Bivariate Analysis</h2>
                 <p></p>
         <div id="bivariate_analysis">
-            <h3>Correlation matrix</h3>
+            {% if num_categorical > 0 %}
+            <h3>Categorical variables</h3>
+            {{ cat_bivariate_stats | safe }}
+            {% endif %}
+            {% if num_numeric > 0 %}
+            <h3>Correlation matrix for continuous variables</h3>
             {{ bivariate_analysis_0 | safe }}
             <h3>Correlation matrix (Spearman correlation)</h3>
             {{ bivariate_analysis_1 | safe }}
@@ -128,7 +133,12 @@
         <img src="{{ url_for('static', filename='images/mipairsscatter.png') }}" alt="Scatter Plots of Mutually informative variables">
             <p>If your dataset has more columns than rows this may fail.</p>
         <h2>Multivariate Analysis</h2>
+        {% if num_numeric > 3 %}
         <h3>Parallel coordinate display</h3>
+        {% endif %}
+        {% if 4 > num_numeric %}
+        <h3>3D scatterplot</h3>
+        {% endif %}
         <img src="{{ url_for('static', filename='images/parcoord.png') }}" alt="Parallel coordinate display">
         </div>
     </div>

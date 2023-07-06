@@ -30,23 +30,8 @@
 <p></p>
 <p></p>
 <div class="loader" id="spinner">
-<img src="static/images/loading.gif" style="max-width: 150px; max-height: 150px;"><br>
-  Loading... this may take a while
+<h4 class="blink"> Loading... </h4>
 </div>
-
-<h2>To do</h2>
-<ul>
-      <li>Explain what you do in more detail, with references</li>
-      <li>Better handling of NAs, remove columns with too many NAs before restricting analysis to complete cases, NA imputation</li>
-      <li>Limit rows to 1000, sample if more</li>
-      <li>Limit variables to 10, do variable selection (cluster variables using mutual information distance, select the medoids) above </li>
-      <li>For bivariate plots add stats for the regression (report the mutual information, is the relation non linear, outliers...), make them nicer</li>
-      <li>Improve the selection of the number of mutually informative variables to plot</li>
-      <li>Multivariate analysis: parallel coordinate plot, pca, ica, umap</li>
-      <li>Outlier detection, isolation forests etc.</li>
-      <li>Clustering, dataset summarization with SOM, radar plots of data prototypes</li>
-      <li>Causal discovery, make a DAG, find meaningful (causal) regressions to run, regression diagnostics on those, find instrumental variables </li>
-</ul>
 
 <script>
   document.getElementById('startAnalysisButton').addEventListener('click', function() {
