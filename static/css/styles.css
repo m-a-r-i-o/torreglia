@@ -35,13 +35,13 @@ h3 {
 .content {
     width: 90%;
     margin: auto;
-    overflow: hidden;
+    overflow: auto;
 }
 
 .container {
     width: 90%;
     margin: auto;
-    overflow: hidden;
+    overflow: auto;
 }
 
 header {

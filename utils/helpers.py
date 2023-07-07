@@ -169,6 +169,19 @@ def plot_3d_scatter(df):
     plt.savefig("static/images/parcoord.png", bbox_inches='tight') 
     plt.close()
 
+def create_boxplot(df):
+    print("Creating boxplot")
+
+    # Reshape the data.
+    df_melted = pd.melt(df)
+
+    # Create the box plot.
+    plt.figure(figsize=(12,6))  
+    sns.boxplot(y="variable", x="value", data=df_melted, color="#A0A0A0")
+
+    # Save the figure
+    plt.savefig("static/images/violin_plot.png", bbox_inches='tight') 
+    plt.close()
 
 def parallel_coordinate_plot(df):
     # Assume df is your DataFrame
@@ -186,7 +199,7 @@ def parallel_coordinate_plot(df):
         spl = make_interp_spline(x, y, k=3)  # type: BSpline
         xnew = np.linspace(min(x), max(x), 500)  
         ynew = spl(xnew)
-        plt.plot(xnew, ynew, alpha=0.3, color="#222222")
+        plt.plot(xnew, ynew, alpha=0.08, color="#222222")
 
     for i in x:
         plt.axvline(x=i, linestyle='dotted', color='#888888')

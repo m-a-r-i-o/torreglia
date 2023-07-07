@@ -132,12 +132,13 @@
             <p>We use DirectLINGAM to guess a causal order between each pair of variables, and we display the cause in the x-axis and the effect in the y-axis. Keep in mind that subject matter knowledge should be used to correctly ascertain causal relations.</p>
         <img src="{{ url_for('static', filename='images/mipairsscatter.png') }}" alt="Scatter Plots of Mutually informative variables">
             <p>If your dataset has more columns than rows this may fail.</p>
-        <h2>Multivariate Analysis</h2>
         {% if num_numeric > 3 %}
+        <h2>Multivariate Analysis</h2>
         <h3>Parallel coordinate display</h3>
         <img src="{{ url_for('static', filename='images/parcoord.png') }}" alt="Parallel coordinate display">
         {% endif %}
         {% if num_numeric == 3 %}
+        <h2>Multivariate Analysis</h2>
         <h3>3D scatterplot</h3>
         <img src="{{ url_for('static', filename='images/parcoord.png') }}" alt="Parallel coordinate display">
         {% endif %}

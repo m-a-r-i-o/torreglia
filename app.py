@@ -105,18 +105,8 @@ def upload():
                 corr_matrix_0 = (df.corr(method='pearson')).applymap(lambda x: np.round(x, 2)).to_html()
                 corr_matrix_1 = (df.corr(method='spearman')).applymap(lambda x: np.round(x, 2)).to_html()
 
-                print("Creating boxplot")
+                create_boxplot(df_numeric)
 
-                # Reshape the data.
-                df_melted = pd.melt(df_numeric)
-
-                # Create the box plot.
-                plt.figure(figsize=(12,6))  
-                sns.boxplot(y="variable", x="value", data=df_melted, color="#A0A0A0")
-
-                # Save the figure
-                plt.savefig("static/images/violin_plot.png", bbox_inches='tight') 
-                plt.close()
                 if not os.path.exists('static/images/histograms'):
                     os.makedirs('static/images/histograms')
 
