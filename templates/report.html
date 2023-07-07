@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
 <body>
+
 <header>
   <nav>
     <ul>
@@ -161,5 +162,31 @@
     });
 </script>
 {% endif %}
+<script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+<script type="text/javascript">
+    window.onload = function() {
+        // Select all td elements in the document
+        var cells = document.getElementsByTagName("td");
+
+        // Regular expression to match numbers in scientific notation
+        var scientificNotation = /(\d+(\.\d*)?|\.\d+)([eE][-+]?\d+)/g;
+
+        // Go through all cells
+        for (var i = 0; i < cells.length; i++) {
+            // If the cell's text matches our regex
+            if (scientificNotation.test(cells[i].innerHTML)) {
+                // Replace the scientific notation with LaTeX format
+                cells[i].innerHTML = cells[i].innerHTML.replace(scientificNotation, function(match, significand, _, exponent) {
+                    return '\\(' + significand + ' \\times 10^{' + exponent.slice(1) + '}\\)';
+                });
+            }
+        }
+
+        // Typeset the page again with MathJax to update the new LaTeX notation
+        MathJax.typesetPromise();
+    }
+</script>
 </body>
 </html>
