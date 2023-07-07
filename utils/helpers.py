@@ -10,6 +10,7 @@ import re
 from dateutil.parser import parse
 from scipy.stats import chi2_contingency, fisher_exact
 from itertools import combinations
+import math
 
 def cramers_v(x, y):
     confusion_matrix = pd.crosstab(x,y)
@@ -172,16 +173,44 @@ def plot_3d_scatter(df):
 def create_boxplot(df):
     print("Creating boxplot")
 
-    # Reshape the data.
-    df_melted = pd.melt(df)
+    # Calculate ranges and sort columns by them
+    var_ranges = df.max() - df.min()
+    sorted_columns = var_ranges.sort_values().index
 
-    # Create the box plot.
-    plt.figure(figsize=(12,6))  
-    sns.boxplot(y="variable", x="value", data=df_melted, color="#A0A0A0")
+    # Initialize an empty list for storing sub-dataframes (each representing a subplot)
+    dfs = []
+    # Start the first group with the column of smallest range
+    current_group = [sorted_columns[0]]
+
+    for col in sorted_columns[1:]:
+        # If adding a column to the current group wouldn't increase the range of the group more than 10 times
+        if (df[col].max() - df[current_group].min().min()) < 10 * (df[current_group].max().max() - df[current_group].min().min()):
+            # Add it to the current group
+            current_group.append(col)
+        else:
+            # Else start a new group with this column
+            dfs.append(df[current_group])
+            current_group = [col]
+
+    # Don't forget to add the last group
+    dfs.append(df[current_group])
+
+    # Create a subplot for each group
+    fig, axes = plt.subplots(len(dfs), 1, figsize=(12, 6 * len(dfs)))
+
+    # If only one subplot, axes won't be an array; convert it to array for consistency
+    if not isinstance(axes, np.ndarray):
+        axes = np.array([axes])
+
+    for ax, df in zip(axes, dfs):
+        df_melted = pd.melt(df)
+        sns.boxplot(y="variable", x="value", data=df_melted, color="#A0A0A0", ax=ax, width=0.3)
 
     # Save the figure
-    plt.savefig("static/images/violin_plot.png", bbox_inches='tight') 
+    plt.tight_layout()
+    plt.savefig("static/images/violin_plot.png", bbox_inches='tight')
     plt.close()
+
 
 def parallel_coordinate_plot(df):
     # Assume df is your DataFrame
