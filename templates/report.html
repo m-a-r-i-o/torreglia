@@ -72,6 +72,9 @@
 
 </table>
 
+<h2>Data integrity diagnostics</h2>
+{{col_summary_table_html | safe}}
+
         <!-- Display univariate analysis -->
         <h2>Univariate Analysis</h2>
         <div id="univariate_analysis">
@@ -80,7 +83,7 @@
             {{ univariate_analysis_0 | safe }}
         <h3> Distribution tests </h3>
             {{ univariate_analysis_1 | safe }}
-            <p>We test unimodality using Hartigan's dip test and normality  with Shapiro's test. Lognormality is tested by taking the log and testing for normality. The threshold for all p-values is 0.05.</p>
+            <p>We test unimodality using Hartigan's dip test (<a href='https://www.jstor.org/stable/2241144'>Hartigan &amp; Hartigan 1985</a>) and normality  with Shapiro's test (<a href='https://www.jstor.org/stable/2333709'>Shapiro &amp; Wilk 1965</a>). Lognormality is tested by taking the log and testing for normality; negative or zero values immediately rule out lognormality. The threshold for all p-values is 0.05.</p>
                     <p></p>            
             <h3>Box plots for continuous variables</h3>
             <img src="{{ url_for('static', filename='images/violin_plot.png') }}" alt="Strip Plot">

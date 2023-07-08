@@ -83,6 +83,8 @@ def upload():
             df_numeric = df.select_dtypes(include=['int64', 'float64'])
             df_non_numeric = df.select_dtypes(exclude=['int64', 'float64'])
             
+            col_summary_table_html = column_summary(df_numeric).to_html()
+
             cat_bivariate_stats = {}
             if df_non_numeric.shape[1] > 0:
                 barchart_for_categorical_vars(df_non_numeric)
@@ -183,7 +185,8 @@ def upload():
                 num_columns_list=df_numeric.columns.tolist(),
                 cat_stats=cat_stats,
                 sampled_df_table = sampled_df_table,
-                cat_bivariate_stats = cat_bivariate_stats
+                cat_bivariate_stats = cat_bivariate_stats,
+                col_summary_table_html = col_summary_table_html
             )
     return render_template('upload.html')
 

@@ -7,6 +7,12 @@ body {
     color: #000;
 }
 
+p {
+    width: 60%;
+    margin: auto;
+    text-align: justify;
+}
+
 @keyframes blink {
     0% {opacity: 1.0;}
     50% {opacity: 0.0;}

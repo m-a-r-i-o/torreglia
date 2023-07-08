@@ -11,6 +11,107 @@ from dateutil.parser import parse
 from scipy.stats import chi2_contingency, fisher_exact
 from itertools import combinations
 import math
+from scipy.stats import mode
+from scipy.stats import chisquare
+
+def benford_law(series):
+    # Calculate Benford's frequency for digits 1-9
+    benford_freq = np.array([np.log10(1 + 1/digit) for digit in range(1, 10)])
+
+    # Ensure the series contains finite values, is not zero, and is not null
+    valid_values = series[np.isfinite(series) & (series != 0)]
+
+    # Extract first digit of each value
+    first_digits = valid_values.dropna().apply(lambda x: int(str(abs(x))[0]))
+    
+    # Calculate observed frequency of first digits
+    observed_freq = first_digits.value_counts(normalize=True).sort_index()
+
+    # Ensure that observed_freq has the same number of elements as benford_freq
+    observed_freq_reindexed = observed_freq.reindex(range(1, 10), fill_value=0)
+
+    # Perform chi-square test
+    chi_stat, p_val = chisquare(observed_freq_reindexed, f_exp=benford_freq)
+    
+    # Returns True if the distribution is not significantly different from Benford's law
+    return p_val > 0.05
+
+
+
+def detect_high_frequency_values(df, threshold=0.1):
+    high_freq_cols = []
+    n = len(df)
+    for col in df.columns:
+        if df[col].dtype in ['float64', 'float32', 'int64', 'int32']:
+            # Count unique values in the column
+            value_counts = df[col].value_counts()
+            # Find the frequency of the most common value
+            max_freq = value_counts.max() / n
+            if max_freq > threshold:
+                max_val = value_counts.idxmax()
+                high_freq_cols.append((col, max_val, max_freq))
+    return high_freq_cols
+
+def detect_rounded_values(df, num_bins=10):
+    rounded_cols = []
+    for col in df.columns:
+        if df[col].dtype in ['float64', 'float32']:
+            # Extract fractional parts
+            fractional_parts = df[col] % 1
+            # Compute histogram
+            hist, bin_edges = np.histogram(fractional_parts, bins=num_bins)
+            # If histogram of fractional parts is approximately uniform, it might be rounded
+            if np.std(hist) < len(df) / (4*num_bins):  # some threshold to determine 'uniformity'
+                rounded_cols.append(col)
+        elif df[col].dtype in ['int64', 'int32']:  # checks if the data type is integer
+            rounded_cols.append(col)
+    return rounded_cols
+
+
+def detect_almost_identical_cols(df, threshold=1e-10):
+    identical_cols = []
+    for col1 in df.columns:
+        for col2 in df.columns:
+            if col1 != col2 and all(abs(df[col1]-df[col2]) < threshold):
+                identical_cols.append((col1, col2))
+    return identical_cols
+
+def column_summary(df):
+    almost_identical_cols = detect_almost_identical_cols(df)
+    rounding_cols = detect_rounded_values(df)
+    high_freq_cols = detect_high_frequency_values(df)
+
+    summary_df = pd.DataFrame(index=df.columns, columns=["Repeated value", "Repetition frequency", "Fraction NAs", "Almost identical to", "Rounded", 'Benford\'s Law'])
+
+    for col in df.columns:
+        summary_df.loc[col, "Fraction NAs"] = df[col].isna().mean()
+
+        high_freq = [x for x in high_freq_cols if x[0] == col]
+        if high_freq:
+            summary_df.loc[col, "Repeated value"] = high_freq[0][1]
+            summary_df.loc[col, "Repetition frequency"] = high_freq[0][2]
+        else:
+            summary_df.loc[col, "Repeated value"] = ''
+            summary_df.loc[col, "Repetition frequency"] = ''           
+        
+        identical_cols = [x for x in almost_identical_cols if x[0] == col]
+        if identical_cols:
+            summary_df.loc[col, "Almost identical to"] = ''.join(identical_cols[0][1])
+        else:
+            summary_df.loc[col, "Almost identical to"] = ''
+
+        if col in rounding_cols:
+            summary_df.loc[col, "Rounded"] = 'Yes'
+        else:
+            summary_df.loc[col, "Rounded"] = ''
+
+        # Fill in the 'Benford's Law' column
+        if df[col].dtype in ['float64', 'float32', 'int64', 'int32']:
+            summary_df.at[col, 'Benford\'s Law'] = 'Yes' if benford_law(df[col]) else 'No'
+
+
+    return summary_df
+
 
 def cramers_v(x, y):
     confusion_matrix = pd.crosstab(x,y)
@@ -113,10 +214,17 @@ def calculate_categorical_stats(df, top_n=20):
         mode = df[col].mode().iloc[0]
         entropy_value = entropy(rel_freq)
         rel_freq = rel_freq.head(top_n)
+        nlevels = len(np.unique(df[col]))
 
-        stats.append([col, freq.to_string(header=None).replace('\n', '; '), rel_freq.to_string(header=None).replace('\n', '; '), mode, entropy_value])
+        maximum_entropy = np.log(nlevels)
+        if freq[0] == 1:
+            is_name_or_ID = 'Yes'
+            stats.append([col, nlevels, '', '', '', '', '', is_name_or_ID])
+        else:
+            is_name_or_ID = ''
+            stats.append([col, nlevels, freq.to_string(header=None).replace('\n', '; '), rel_freq.to_string(header=None).replace('\n', '; '), mode, entropy_value, maximum_entropy, is_name_or_ID])
 
-    stats_df = pd.DataFrame(stats, columns=['Variable', 'Counts', 'Relative Frequencies', 'Mode', 'Entropy'])
+        stats_df = pd.DataFrame(stats, columns=['Variable', 'Levels', 'Counts', 'Relative Frequencies', 'Mode', 'Entropy', 'Max. Entropy', 'Name/ID?'])
 
     return stats_df 
 
@@ -127,7 +235,13 @@ def find_constant_columns(df):
             constant_columns.append(col)
     return constant_columns
 
+def remove_single_level_columns(df):
+    single_level_cols = [col for col in df.columns if df[col].nunique() == len(df)]
+    df = df.drop(columns=single_level_cols)
+    return df
+
 def barchart_for_categorical_vars(df, top_n=20):
+    df = remove_single_level_columns(df)
     cat_cols = df.columns
     fig, axs = plt.subplots(len(cat_cols), 1, figsize=(10, 5*len(cat_cols)))
 
