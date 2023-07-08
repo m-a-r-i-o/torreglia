@@ -86,8 +86,10 @@ def upload():
             col_summary_table_html = column_summary(df_numeric).to_html()
 
             cat_bivariate_stats = {}
-            if df_non_numeric.shape[1] > 0:
-                barchart_for_categorical_vars(df_non_numeric)
+            df_non_numeric_noID = remove_single_level_columns(df_non_numeric)
+            if df_non_numeric_noID.shape[1] > 0:
+                barchart_for_categorical_vars(df_non_numeric_noID)
+            if df_non_numeric.shape[1] > 0:    
                 cat_stats = calculate_categorical_stats(df_non_numeric).to_html(index=False)
                 cat_bivariate_stats = categorical_bivariate(df_non_numeric).to_html()
 

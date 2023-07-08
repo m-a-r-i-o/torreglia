@@ -24,7 +24,9 @@
         <h1>Data Analysis Report for <em>{{file}}</em></h1>
 
 <h2>Dataset snippet</h2>
-{{ sampled_df_table | safe }} 
+{{ sampled_df_table | safe }}
+<p>We show the first three rows of the dataset, followed by three rows sampled at random, and by the last three rows. In case there are less than nine rows, we show the whole dataset.</p>
+<p>If the dataset has a large number of columns you may need to scroll right to see them all.</p>
 
 <h2>General information</h2>
 
@@ -69,11 +71,14 @@
         <td>Date Columns:</td>
         <td>{% for column in date_columns %}{{column}}<br>{% endfor %}</td>
     <tr>   
-
 </table>
+
+<p>We find the missing values (NAs) or not-a-number values (NaN) in your dataset as long as they are coded in a standard way. We also identify other issues, such as constant columns and duplicated rows, which may suggest further preprocessing is needed. Date columns contain a date, according to our best guess. If your data is in time series format, consider using our timeseries tool.</p> 
 
 <h2>Data integrity diagnostics</h2>
 {{col_summary_table_html | safe}}
+
+<p>We check whether your data contains weird, unexpected features that may suggest improper preprocessing or other issues. <a href='https://en.wikipedia.org/wiki/Benford%27s_law'>Benford's law</a> predicts the relative frequecy of the digit values of the leading digit of your data. Deviations from the law may suggest atypical data and have been used to detect fraudulent datasets.</p><p>We also try to detect rounding and whether a large fraction (over ten percent) of the values of a continuous column is identically equal to some constant. This may suggest that such a constant has been used to denote NAs, as sometimes happens in astronomical data with the constant -999.</p><p>Finally, we detect whether a column is almost identical to some other column, which may happen if some measurement and the rounded version of it are both recorded.<p>
 
         <!-- Display univariate analysis -->
         <h2>Univariate Analysis</h2>
@@ -92,7 +97,8 @@
             {% if num_categorical > 0 %}
             <h3>Summary table for categorical variables</h3>
             {{ cat_stats | safe }}
-            <p>Showing levels for each categorical variables up to 20 individual levels.</p>
+            <p>Showing levels for each categorical variables up to 20 individual levels, with additional levels lumped together into the category <em>other</em>. Entropy is a measure of how evenly distributed the values of a categorical variable are, with maximum entropy achieved if all levels contain the same number of observations.</p>
+            <p>We also detect categorical variables that are a mere ID or name. These variables have one level per observation. We discard them in the subsequent analysis since they are not informative.</p>
             <h3>Barchart for categorical variables</h3>
         <img src="{{ url_for('static', filename='images/barchart.png') }}" alt="Barchart for categorical variables">
             {% endif %}
@@ -127,13 +133,16 @@
             {% endif %}
         <div id="bivariate_analysis">
             {% if num_numeric > 0 %}
-            <h3>Correlation matrix for continuous variables</h3>
+            <h3>Correlation matrix</h3>
             {{ bivariate_analysis_0 | safe }}
-            <h3>Correlation matrix (Spearman correlation)</h3>
+            <p>We compute <a href='https://en.wikipedia.org/wiki/Pearson_correlation_coefficient'>Pearson correlation</a> for each couple of continuous variables. Correlation coefficients below -0.5 are shown in red, above 0.5 in blue. Correlation coefficients may be misleading in the presence of outliers and may not adequately reflect non-linear relations.</p>
+            <h3>Robust correlation matrix (Spearman correlation)</h3>
             {{ bivariate_analysis_1 | safe }}
+            <p><a href='https://en.wikipedia.org/wiki/Spearman%27s_rank_correlation_coefficient'>Spearman correlation coefficients</a> are based on the rank of variables, so they are more robust to outliers and their modulus is invariant for monotonic transforms.</p>
+
             <h3>Selected scatter plots</h3>
-            <p>We select up to ten pairs of variables with the highest mutual information. These are likely to be related in some fashion, so it is worth visualizing their scatter plots.</p>
-            <p>We use DirectLINGAM to guess a causal order between each pair of variables, and we display the cause in the x-axis and the effect in the y-axis. Keep in mind that subject matter knowledge should be used to correctly ascertain causal relations.</p>
+            <p>We select up to ten pairs of variables with the highest <a href='https://en.wikipedia.org/wiki/Mutual_information'>mutual information</a>. These are likely to be related in some fashion, so it is worth visualizing their scatter plots.</p>
+            <p>We use DirectLINGAM (<a href='https://www.jmlr.org/papers/volume12/shimizu11a/shimizu11a.pdf'>Shimizu et al. 2011</a>) to guess a causal order between each pair of variables, and we display the cause in the x-axis and the effect in the y-axis. Keep in mind that subject matter knowledge should be used to correctly ascertain causal relations.</p>
         <img src="{{ url_for('static', filename='images/mipairsscatter.png') }}" alt="Scatter Plots of Mutually informative variables">
             <p>If your dataset has more columns than rows this may fail.</p>
         {% if num_numeric > 3 %}

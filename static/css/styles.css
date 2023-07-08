@@ -9,9 +9,15 @@ body {
 
 p {
     width: 60%;
+    padding-top: 5px;
     margin: auto;
     text-align: justify;
 }
+
+p a {
+        color: #888888;
+        text-decoration: underline;
+    }
 
 @keyframes blink {
     0% {opacity: 1.0;}

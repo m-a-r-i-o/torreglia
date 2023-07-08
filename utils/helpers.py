@@ -241,7 +241,6 @@ def remove_single_level_columns(df):
     return df
 
 def barchart_for_categorical_vars(df, top_n=20):
-    df = remove_single_level_columns(df)
     cat_cols = df.columns
     fig, axs = plt.subplots(len(cat_cols), 1, figsize=(10, 5*len(cat_cols)))
 
