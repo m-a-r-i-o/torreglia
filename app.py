@@ -42,6 +42,7 @@ def upload():
             univariate_analysis_0 = {}
             univariate_analysis_1 = {}
             cat_stats = {}
+            num_plottable_categorical = 0
             for column in df.columns:
                 if df[column].dtype in ['int64', 'float64']:
                     print("Testing unimodality")
@@ -87,6 +88,7 @@ def upload():
 
             cat_bivariate_stats = {}
             df_non_numeric_noID = remove_single_level_columns(df_non_numeric)
+            num_plottable_categorical = df_non_numeric_noID.shape[1]
             if df_non_numeric_noID.shape[1] > 0:
                 barchart_for_categorical_vars(df_non_numeric_noID)
             if df_non_numeric.shape[1] > 0:    
@@ -188,7 +190,8 @@ def upload():
                 cat_stats=cat_stats,
                 sampled_df_table = sampled_df_table,
                 cat_bivariate_stats = cat_bivariate_stats,
-                col_summary_table_html = col_summary_table_html
+                col_summary_table_html = col_summary_table_html,
+                num_plottable_categorical = num_plottable_categorical
             )
     return render_template('upload.html')
 

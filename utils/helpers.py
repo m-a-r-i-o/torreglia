@@ -13,6 +13,10 @@ from itertools import combinations
 import math
 from scipy.stats import mode
 from scipy.stats import chisquare
+import statsmodels.api as sm
+from scipy import interpolate
+from sklearn.metrics import r2_score
+
 
 def benford_law(series):
     # Calculate Benford's frequency for digits 1-9
@@ -485,7 +489,7 @@ def get_top_k_pairs(mutual_info_dict, k):
     sorted_pairs = sorted(mutual_info_dict.items(), key=lambda item: item[1], reverse=True)
     return [pair[0] for pair in sorted_pairs[:k]]
 
-def plot_scatter_plots(df, pairs):
+def plot_scatter_plots(df, pairs, threshold = 0.8):
     n = len(pairs)
     fig, axs = plt.subplots(n, figsize=(8, 6*n))  # Set the total figure size and create subplots
 
@@ -505,13 +509,46 @@ def plot_scatter_plots(df, pairs):
 
         # Check if the first variable is the cause (smaller index in causal_order)
         if causal_order[0] < causal_order[1]:
-            axs[i].scatter(df[pair[0]], df[pair[1]], color = "#A0A0A0")
+            x = df[pair[0]]
+            y = df[pair[1]]
+            axs[i].scatter(x, y, color = "#A0A0A0") 
+            X = sm.add_constant(x)
+            model = sm.OLS(y, X)
+            results = model.fit()
+            # Determine how good the regression is
+            r_squared = r2_score(y, results.predict(X))
+            print("Regressing")
+            # Check if the fit is good enough
+            if r_squared >= threshold:
+                print("if")
+                # If it is good enough, overplot the regression line
+                axs[i].plot(x, results.predict(X), color='#222222', label='Linear Regression')
+
+                # Add equation as legend
+                axs[i].text(0.05, 0.95, 'y = {:.2f}x + {:.2f}, R² = {:.2f}'.format(results.params[1], results.params[0], r_squared),
+                transform=axs[i].transAxes, verticalalignment='top')
             axs[i].set_xlabel(pair[0])
             axs[i].set_ylabel(pair[1])
         else:
-            axs[i].scatter(df[pair[1]], df[pair[0]], color = "#A0A0A0")
+            x = df[pair[1]]
+            y = df[pair[0]]
+            axs[i].scatter(x, y, color = "#A0A0A0")
+            X = sm.add_constant(x)
+            model = sm.OLS(y, X)
+            results = model.fit()
+            # Determine how good the regression is
+            r_squared = r2_score(y, results.predict(X))
+            print("Regressing")
+            # Check if the fit is good enough
+            if r_squared >= threshold:
+                print("if")
+                # If it is good enough, overplot the regression line
+                axs[i].plot(x, results.predict(X), color='#222222', label='Linear Regression')
+
+                # Add equation as legend
+                axs[i].text(0.05, 0.95, 'y = {:.2f}x + {:.2f}, R² = {:.2f}'.format(results.params[1], results.params[0], r_squared),
+                transform=axs[i].transAxes, verticalalignment='top')
             axs[i].set_xlabel(pair[1])
             axs[i].set_ylabel(pair[0])
-
     plt.tight_layout()
     plt.savefig("static/images/mipairsscatter.png", bbox_inches='tight') 
