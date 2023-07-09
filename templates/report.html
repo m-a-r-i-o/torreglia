@@ -25,7 +25,7 @@
 
 <h2>Dataset snippet</h2>
 {{ sampled_df_table | safe }}
-<p>We show the first three rows of the dataset, followed by three rows sampled at random, and by the last three rows. In case there are less than nine rows, we show the whole dataset.</p>
+<p>We show the first three rows of the dataset, followed by three rows sampled at random, and by the last three rows. In case there are less than ten rows, we show the whole dataset.</p>
 <p>If the dataset has a large number of columns you may need to scroll right to see them all.</p>
 
 <h2>General information</h2>
@@ -90,21 +90,24 @@
             {{ univariate_analysis_1 | safe }}
             <p>We test unimodality using Hartigan's dip test (<a href='https://www.jstor.org/stable/2241144'>Hartigan &amp; Hartigan 1985</a>) and normality  with Shapiro's test (<a href='https://www.jstor.org/stable/2333709'>Shapiro &amp; Wilk 1965</a>). Lognormality is tested by taking the log and testing for normality; negative or zero values immediately rule out lognormality. The threshold for all p-values is 0.05.</p>
                     <p></p>            
-            <h3>Box plots for continuous variables</h3>
+            <h3>Boxplots for continuous variables</h3>
             <img src="{{ url_for('static', filename='images/violin_plot.png') }}" alt="Strip Plot">
                     <p></p>
+                    <p>The box in the boxplot spans the interval between the first and the third quartile, which contains half of the data. The whiskers extend out by 1.5 times the length of the box. Any data point that falls outside the interval spanned by the whiskers is a suspected outlier. The vertical line inside the box represents the median.</p>
+                    <p>If the columns of your dataset correspond to variables that have very different scales we split the plot so that only the boxplots which can be meaningfully compared end up in the same subplot.</p>
             {% endif %}
             {% if num_categorical > 0 %}
             <h3>Summary table for categorical variables</h3>
             {{ cat_stats | safe }}
-            <p>Showing levels for each categorical variables up to 20 individual levels, with additional levels lumped together into the category <em>other</em>. Entropy is a measure of how evenly distributed the values of a categorical variable are, with maximum entropy achieved if all levels contain the same number of observations.</p>
+            <p>Showing levels for each categorical variables up to 20 individual levels, corresponding to the levels with the highest counts. Entropy is a measure of how evenly distributed the values of a categorical variable are, with maximum entropy achieved if all levels contain the same number of observations.</p>
             <p>We also detect categorical variables that are a mere ID or name. These variables have one level per observation. We discard them in the subsequent analysis since they are not informative.</p>
-            <h3>Barchart for categorical variables</h3>
+            <h3>Barchart</h3>
         <img src="{{ url_for('static', filename='images/barchart.png') }}" alt="Barchart for categorical variables">
+            <p>The barchart show the counts for each level of a categorical variable. If the number of levels exceeds 20, only the most frequent levels are shown, and the others are lumped together into the category <em>other</em>.
             {% endif %}
             {% if num_numeric > 0 %}
             <h3>Histograms</h3>
-            <p>Click on histogram thumbnails to enlarge and download</p>  
+            <p>We show a histogram for each continuous variable. Click on histogram thumbnails to enlarge and download the image.</p>  
 
 <table class="table-no-fancy">
     <tr>
@@ -127,9 +130,10 @@
                 <p></p>
         <h2>Bivariate Analysis</h2>
                 <p></p>
-            {% if num_categorical > 0 %}
+            {% if num_categorical > 1 %}
             <h3>Categorical variables</h3>
             {{ cat_bivariate_stats | safe }}
+            <p>We run chi-square tests on each couple of categorical variables to the exclusion of those who have as many levels as observations - those are row IDs or names. A significant test p-value rejects the null hypothesis that the two variables are statistically independent.</p>
             {% endif %}
         <div id="bivariate_analysis">
             {% if num_numeric > 0 %}
@@ -149,11 +153,13 @@
         <h2>Multivariate Analysis</h2>
         <h3>Parallel coordinate display</h3>
         <img src="{{ url_for('static', filename='images/parcoord.png') }}" alt="Parallel coordinate display">
+        <p>In a parallel coordinate display a curve corresponds to one row of your dataset. The point where the curve intersect the vertical segment corresponding to one of your variables represents the value of that variable for that row. To improve the plot's readability each variable has been scaled to [0, 1]</p>
         {% endif %}
         {% if num_numeric == 3 %}
         <h2>Multivariate Analysis</h2>
         <h3>3D scatterplot</h3>
         <img src="{{ url_for('static', filename='images/parcoord.png') }}" alt="Parallel coordinate display">
+        <p>Your dataset contains only three continuous variables. We show them here in the form of a three-dimensional scatterplot.</p>
         {% endif %}
         </div>
     </div>
