@@ -54,6 +54,8 @@ h3 {
     width: 90%;
     margin: auto;
     overflow: auto;
+    margin-bottom: 30px;
+    padding-bottom: 30px; 
 }
 
 header {
@@ -61,6 +63,14 @@ header {
     color: #FFF;
     padding-top: 5px;
     min-height: 15px;
+}
+
+footer {
+    background-color: #333;
+    color: #FFF;
+    padding-top: 20px;
+    padding-bottom: 10px;    
+    min-height: 30px;
 }
 
 header a {
@@ -90,18 +100,37 @@ header .nav {
     margin-top: 10px;
 }
 
+footer a {
+    color: #FFF;
+    text-decoration: none;
+    text-transform: uppercase;
+    font-size: 16px;
+}
+
+footer li {
+    float: left;
+    display: inline;
+    padding: 0 20px 0 20px;
+}
+
+footer ul {
+    margin: 0;
+    padding: 0;
+}
+
+footer .title {
+    float: left;
+}
+
+footer .nav {
+    float: right;
+    margin-top: 10px;
+}
+
 .main {
     padding: 20px;
     background: #fff;
     color: #C33;
-}
-
-footer {
-    background-color: #333;
-    color: #FFF;
-    text-align: center;
-    padding: 10px;
-    margin-top: 20px;
 }
 
 img {

@@ -17,6 +17,8 @@ import statsmodels.api as sm
 from scipy import interpolate
 from sklearn.metrics import r2_score
 
+def perform_second_analysis():
+    return 'yo'
 
 def benford_law(series):
     # Calculate Benford's frequency for digits 1-9
@@ -42,7 +44,7 @@ def benford_law(series):
 
 
 
-def detect_high_frequency_values(df, threshold=0.1):
+def detect_high_frequency_values(df, threshold=0.01):
     high_freq_cols = []
     n = len(df)
     for col in df.columns:
@@ -50,8 +52,9 @@ def detect_high_frequency_values(df, threshold=0.1):
             # Count unique values in the column
             value_counts = df[col].value_counts()
             # Find the frequency of the most common value
-            max_freq = value_counts.max() / n
-            if max_freq > threshold:
+            max_count = value_counts.max()
+            max_freq = max_count / n
+            if (max_freq > threshold) and (max_count > 10):
                 max_val = value_counts.idxmax()
                 high_freq_cols.append((col, max_val, max_freq))
     return high_freq_cols
@@ -300,8 +303,10 @@ def create_boxplot(df):
     current_group = [sorted_columns[0]]
 
     for col in sorted_columns[1:]:
-        # If adding a column to the current group wouldn't increase the range of the group more than 10 times
-        if (df[col].max() - df[current_group].min().min()) < 10 * (df[current_group].max().max() - df[current_group].min().min()):
+        # If adding a column to the current group wouldn't increase the range of the group more than 5 times
+        newrange = max(df[col].max(),df[current_group].max().max()) - min(df[col].min(), df[current_group].min().min())
+        oldrange = (df[current_group].max().max() - df[current_group].min().min())
+        if newrange < 5 * oldrange:
             # Add it to the current group
             current_group.append(col)
         else:
@@ -321,8 +326,15 @@ def create_boxplot(df):
 
     for ax, df in zip(axes, dfs):
         df_melted = pd.melt(df)
-        sns.boxplot(y="variable", x="value", data=df_melted, color="#A0A0A0", ax=ax, width=0.3)
-
+        sns.boxplot(y="variable", x="value", data=df_melted, color="#A0A0A0", ax=ax, width=0.1)
+        # Increase the font size of the labels
+        ax.tick_params(axis='x', labelsize=20)  # Change the font size of x-axis labels
+        ax.tick_params(axis='y', labelsize=14)  # Change the font size of y-axis labels
+        ax.set_ylabel("")
+        ax.set_xlabel("value", fontsize=18)        
+        # Optionally, you can also increase the font size of the tick labels
+        plt.xticks(fontsize=14)
+        plt.yticks(fontsize=14)
     # Save the figure
     plt.tight_layout()
     plt.savefig("static/images/violin_plot.png", bbox_inches='tight')
@@ -511,44 +523,30 @@ def plot_scatter_plots(df, pairs, threshold = 0.8):
         if causal_order[0] < causal_order[1]:
             x = df[pair[0]]
             y = df[pair[1]]
-            axs[i].scatter(x, y, color = "#A0A0A0") 
-            X = sm.add_constant(x)
-            model = sm.OLS(y, X)
-            results = model.fit()
-            # Determine how good the regression is
-            r_squared = r2_score(y, results.predict(X))
-            print("Regressing")
-            # Check if the fit is good enough
-            if r_squared >= threshold:
-                print("if")
-                # If it is good enough, overplot the regression line
-                axs[i].plot(x, results.predict(X), color='#222222', label='Linear Regression')
-
-                # Add equation as legend
-                axs[i].text(0.05, 0.95, 'y = {:.2f}x + {:.2f}, R² = {:.2f}'.format(results.params[1], results.params[0], r_squared),
-                transform=axs[i].transAxes, verticalalignment='top')
             axs[i].set_xlabel(pair[0])
             axs[i].set_ylabel(pair[1])
         else:
             x = df[pair[1]]
             y = df[pair[0]]
-            axs[i].scatter(x, y, color = "#A0A0A0")
-            X = sm.add_constant(x)
-            model = sm.OLS(y, X)
-            results = model.fit()
-            # Determine how good the regression is
-            r_squared = r2_score(y, results.predict(X))
-            print("Regressing")
-            # Check if the fit is good enough
-            if r_squared >= threshold:
-                print("if")
-                # If it is good enough, overplot the regression line
-                axs[i].plot(x, results.predict(X), color='#222222', label='Linear Regression')
-
-                # Add equation as legend
-                axs[i].text(0.05, 0.95, 'y = {:.2f}x + {:.2f}, R² = {:.2f}'.format(results.params[1], results.params[0], r_squared),
-                transform=axs[i].transAxes, verticalalignment='top')
             axs[i].set_xlabel(pair[1])
             axs[i].set_ylabel(pair[0])
+        axs[i].scatter(x, y, color = "#A0A0A0") 
+        X = sm.add_constant(x)
+        model = sm.OLS(y, X)
+        results = model.fit()
+        # Determine how good the regression is
+        r_squared = r2_score(y, results.predict(X))
+        print("Regressing")
+        # Check if the fit is good enough
+        if r_squared >= threshold:
+            print("if")
+            # If it is good enough, overplot the regression line
+            axs[i].plot(x, results.predict(X), color='#222222', label='Linear Regression')
+
+            # Add equation as legend
+            axs[i].text(0.05, 0.95, 'y = {:.2f}x + {:.2f}, R² = {:.2f}'.format(results.params[1], results.params[0], r_squared),
+            transform=axs[i].transAxes, verticalalignment='top')
+
+
     plt.tight_layout()
     plt.savefig("static/images/mipairsscatter.png", bbox_inches='tight') 

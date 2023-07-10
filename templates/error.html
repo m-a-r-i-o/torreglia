@@ -3,6 +3,7 @@
 <head>
   <title>Error</title>
      <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+     <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}">
 </head>
 <header>
   <nav>
@@ -16,10 +17,6 @@
 </header>
 <body>
   <h1 style="color: red">An error has occurred while reading your csv file</h1>
-  <h4 style="color: #A0A0A0">{{ error_message }}</h4>
-  <p> </p>
-  <p> </p>
-  <p> </p>
   <h4 style="color: red">Please ensure the csv file looks something like this:</h4>
   <p> </p>
   <pre style="color: #A0A0A0">

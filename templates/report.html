@@ -7,6 +7,7 @@
 <meta http-equiv="Expires" content="0" />
     <title>Data Analysis Report</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}">
 </head>
 <body>
 
@@ -25,7 +26,7 @@
 
 <h2>Dataset snippet</h2>
 {{ sampled_df_table | safe }}
-<p>We show the first three rows of the dataset, followed by three rows sampled at random, and by the last three rows. In case there are less than ten rows, we show the whole dataset.</p>
+<p>Showing the first three rows of the dataset, followed by three rows sampled at random, and by the last three rows. In case there are less than ten rows, the whole dataset is shown.</p>
 <p>If the dataset has a large number of columns you may need to scroll right to see them all.</p>
 
 <h2>General information</h2>
@@ -73,12 +74,12 @@
     <tr>   
 </table>
 
-<p>We find the missing values (NAs) or not-a-number values (NaN) in your dataset as long as they are coded in a standard way. We also identify other issues, such as constant columns and duplicated rows, which may suggest further preprocessing is needed. Date columns contain a date, according to our best guess. If your data is in time series format, consider using our timeseries tool.</p> 
+<p>Detecting missing values (NAs) or not-a-number values (NaN) in your dataset, as long as they are coded in a standard way. Other issues, such as constant columns and duplicated rows are also checked for. Date columns contain data that appears to be formatted as a date. This may indicate that part or all of your data is a time series. If that is the case, consider using our timeseries tool.</p> 
 
 <h2>Data integrity diagnostics</h2>
 {{col_summary_table_html | safe}}
 
-<p>We check whether your data contains weird, unexpected features that may suggest improper preprocessing or other issues. <a href='https://en.wikipedia.org/wiki/Benford%27s_law'>Benford's law</a> predicts the relative frequecy of the digit values of the leading digit of your data. Deviations from the law may suggest atypical data and have been used to detect fraudulent datasets.</p><p>We also try to detect rounding and whether a large fraction (over ten percent) of the values of a continuous column is identically equal to some constant. This may suggest that such a constant has been used to denote NAs, as sometimes happens in astronomical data with the constant -999.</p><p>Finally, we detect whether a column is almost identical to some other column, which may happen if some measurement and the rounded version of it are both recorded.<p>
+<p>A few checks to reveal improper preprocessing or other issues. <a href='https://en.wikipedia.org/wiki/Benford%27s_law'>Benford's law</a> predicts the relative frequecy of the digit values of the leading digit of your data. Deviations from the law may suggest atypical data and have been used to detect fraudulent datasets. An attempt at detecting rounding is also made. </p><p>If a large fraction (over ten percent) of the values of a continuous column is identically equal to some constant, this may suggest that such a constant has been used to denote NAs, as sometimes happens in astronomical data with the constant -999.</p><p>Finally, we detect whether a column is almost identical to some other column, which may happen if some measurement and the rounded version of it are both recorded.<p>
 
         <!-- Display univariate analysis -->
         <h2>Univariate Analysis</h2>
@@ -99,7 +100,7 @@
             {% if num_categorical > 0 %}
             <h3>Summary table for categorical variables</h3>
             {{ cat_stats | safe }}
-            <p>Showing levels for each categorical variables up to 20 individual levels, corresponding to the levels with the highest counts. Entropy is a measure of how evenly distributed the values of a categorical variable are, with maximum entropy achieved if all levels contain the same number of observations.</p>
+            <p>Showing levels for each categorical variable up to 20 individual levels, corresponding to the levels with the highest counts. Entropy is a measure of how evenly distributed the values of a categorical variable are, with maximum entropy achieved if all levels contain the same number of observations.</p>
             <p>We also detect categorical variables that are a mere ID or name. These variables have one level per observation. We discard them in the subsequent analysis since they are not informative.</p>
             {% if num_plottable_categorical > 0 %}
             <h3>Barchart</h3>
@@ -109,15 +110,23 @@
             {% endif %}
             {% if num_numeric > 0 %}
             <h3>Histograms</h3>
-            <p>We show a histogram for each continuous variable. Click on histogram thumbnails to enlarge and download the image.</p>  
+{% if 5 > num_numeric %}
+{% for column in num_columns_list %}
+            <a href="{{ url_for('static', filename='images/histograms/histogram_' + column + '.png') }}">
+            <img src="{{ url_for('static', filename='images/histograms/histogram_' + column + '.png') }}" alt="{{ column }} Histogram" style="max-width: {{ thumbnail_size }}; max-height: {{ thumbnail_size }};">
+            </a>
+        {% endfor %}
+{% endif %}
 
+{% if num_numeric > 4 %}
 <table class="table-no-fancy">
     <tr>
+        {% set thumbnail_size = '200px' %}
         {% for column in num_columns_list %}
         <td>
             <a href="{{ url_for('static', filename='images/histograms/histogram_' + column + '.png') }}">
-            <img src="{{ url_for('static', filename='images/histograms/histogram_' + column + '.png') }}" alt="{{ column }} Histogram" style="max-width: 150px; max-height: 150px;">
-        </a>
+            <img src="{{ url_for('static', filename='images/histograms/histogram_' + column + '.png') }}" alt="{{ column }} Histogram" style="max-width: {{ thumbnail_size }}; max-height: {{ thumbnail_size }};">
+            </a>
         </td>
         {% if loop.index is divisibleby 5 %} <!--Change the '5' to change the number of images per row-->
         </tr>
@@ -126,19 +135,21 @@
         {% endfor %}
     </tr>
 </table>
+{% endif %}
+
         </div>
 {% endif %}
         <!-- Display bivariate analysis -->
                 <p></p>
         <h2>Bivariate Analysis</h2>
-                <p></p>
+                <p>Variables are considered in pairs and various measures of association are shown. Visualizing all possible pairs of variables may be too time consuming, so a selection of pairwise scatter plots is displayed.</p>
             {% if num_categorical > 1 %}
             <h3>Categorical variables</h3>
             {{ cat_bivariate_stats | safe }}
             <p>We run chi-square tests on each couple of categorical variables to the exclusion of those who have as many levels as observations - those are row IDs or names. A significant test p-value rejects the null hypothesis that the two variables are statistically independent.</p>
             {% endif %}
         <div id="bivariate_analysis">
-            {% if num_numeric > 0 %}
+            {% if num_numeric > 1 %}
             <h3>Correlation matrix</h3>
             {{ bivariate_analysis_0 | safe }}
             <p>We compute <a href='https://en.wikipedia.org/wiki/Pearson_correlation_coefficient'>Pearson correlation</a> for each couple of continuous variables. Correlation coefficients below -0.5 are shown in red, above 0.5 in blue. Correlation coefficients may be misleading in the presence of outliers and may not adequately reflect non-linear relations.</p>
@@ -151,6 +162,7 @@
             <p>We use DirectLINGAM (<a href='https://www.jmlr.org/papers/volume12/shimizu11a/shimizu11a.pdf'>Shimizu et al. 2011</a>) to guess a causal order between each pair of variables, and we display the cause in the x-axis and the effect in the y-axis. Keep in mind that subject matter knowledge should be used to correctly ascertain causal relations.</p>
             <p>If the R-square of a linear regression exceeds 0.8 we also plot the regression line and display its equation.</p>
         <img src="{{ url_for('static', filename='images/mipairsscatter.png') }}" alt="Scatter Plots of Mutually informative variables">
+
         {% if num_numeric > 3 %}
         <h2>Multivariate Analysis</h2>
         <h3>Parallel coordinate display</h3>
@@ -165,6 +177,7 @@
         {% endif %}
         </div>
     </div>
+{% endif %}
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
         <script>
     $(document).ready(function(){
@@ -181,7 +194,6 @@
         });
     });
 </script>
-{% endif %}
 <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
 <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 
@@ -208,5 +220,21 @@
         MathJax.typesetPromise();
     }
 </script>
+</div>
+
+<a href="{{ url_for('second_analysis') }}">Perform Second Analysis</a>
+
+
+<footer>
+  <nav>
+    <ul>
+      <li><strong>df.&#x2118;()</strong>
+</li>
+      <li><a href="/">Home</a></li>
+      <!-- Add more navigation links here -->
+    </ul>
+  </nav>
+</footer>
 </body>
+
 </html>

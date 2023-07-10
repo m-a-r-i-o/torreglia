@@ -21,6 +21,15 @@ mpl.rcParams['xtick.color'] = '#555555'
 mpl.rcParams['ytick.color'] = '#555555'
 mpl.rcParams['text.color'] = '#222222'
 
+@app.route('/second_analysis')
+def second_analysis():
+    # Call your second analysis function here
+    result = perform_second_analysis()
+
+    # You can then pass the results of your analysis to another template
+    # that is designed to display these results
+    return render_template('second_analysis_results.html', result=result)
+
 
 @app.route('/', methods=['GET', 'POST'])
 def upload():
@@ -30,7 +39,7 @@ def upload():
             try:
                 df = read_input_file(file)
             except Exception as e:
-                return render_template('error.html', error_message=str(e))
+                return render_template('error.html')
 
             sample_df = get_sample_rows(df)
             sampled_df_table = sample_df.to_html(index=False)
