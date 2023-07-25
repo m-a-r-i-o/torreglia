@@ -19,7 +19,6 @@ from scipy import interpolate
 from sklearn.metrics import r2_score 
 from mpl_toolkits.mplot3d import Axes3D
 import time
-
 from sklearn_extra.cluster import KMedoids
 from sklearn.preprocessing import RobustScaler
 from sklearn.metrics import silhouette_score
@@ -28,14 +27,17 @@ def clustering(df):
     df_numeric = df.select_dtypes(include=[np.number])
     scaler = RobustScaler()
     df_numeric_scaled = scaler.fit_transform(df_numeric)
-    range_n_clusters = list(range(2,11))  # Adjust as needed
+    ra = range(2,11)
+    range_n_clusters = list(ra)  # Adjust as needed
     best_num_clusters = 0
     best_silhouette_score = -1
+    silhouette_scores = []
     for n_clusters in range_n_clusters:
         # Fit the KMedoids model
         kmedoids = KMedoids(n_clusters=n_clusters, random_state=0).fit(df_numeric_scaled)
         # Compute the silhouette score
         silhouette_avg = silhouette_score(df_numeric_scaled, kmedoids.labels_)
+        silhouette_scores.append(silhouette_avg)
         # Check if this silhouette score is better than the current best
         if silhouette_avg > best_silhouette_score:
             best_silhouette_score = silhouette_avg
@@ -46,6 +48,14 @@ def clustering(df):
     df_numeric['cluster'] = kmedoids.labels_
     # Get the medoids
     medoids = df_numeric.iloc[kmedoids.medoid_indices_, :]
+
+    plt.figure()
+    plt.plot(ra, silhouette_scores, color = "#222222")
+    plt.xlabel("Number of clusters")
+    plt.ylabel("Average silhouette width")
+    upload_id = session.get("upload_id")
+    plt.savefig(f"static/images/{upload_id}_sil.png", bbox_inches='tight') 
+    plt.close()
     return medoids
 
 def perform_second_analysis(df):

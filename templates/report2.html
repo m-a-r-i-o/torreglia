@@ -23,8 +23,16 @@
 </header>
     <div class="container">
         <h1>Data Analysis Report for <em>{{file}}</em></h1>
-        <h2>Cluster medoids</h2>
+        <h2>Clustering</h2>
+        <h3>Optimal number of clusters</h3>
+        <img src="{{ url_for('static', filename='images/' + upload_id + '_sil.png') }}" alt="Silhouette score as a function of the number of clusters">
+        <h3>Medoids</h3>
         {{ result | safe }}
+        <p>We run k-medoids on the numeric columns of your dataset, choosing the number of clusters that maximizes the average silhouette width, between 2 and 10.</p>
+        <p>This table reports the medoids, which are actual data points selected to be central in each cluster.</p>
+
+
+    </div>
 </body>
 
 </html>

@@ -29,7 +29,9 @@ def second_analysis():
     file_path = os.path.join('static', filename)
     df = pd.read_csv(file_path)
     result = perform_second_analysis(df).to_html(index=False)
-    return render_template('report2.html', result=result, file=filename)
+    upload_id = session['upload_id']
+    return render_template('report2.html', result=result,
+     file=filename, upload_id=upload_id)
 
 
 @app.route('/', methods=['GET', 'POST'])
