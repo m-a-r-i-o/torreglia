@@ -92,7 +92,7 @@
             <p>We test unimodality using Hartigan's dip test (<a href='https://www.jstor.org/stable/2241144'>Hartigan &amp; Hartigan 1985</a>) and normality  with Shapiro's test (<a href='https://www.jstor.org/stable/2333709'>Shapiro &amp; Wilk 1965</a>). Lognormality is tested by taking the log and testing for normality; negative or zero values immediately rule out lognormality. The threshold for all p-values is 0.05.</p>
                     <p></p>            
             <h3>Boxplots for continuous variables</h3>
-            <img src="{{ url_for('static', filename='images/violin_plot.png') }}" alt="Strip Plot">
+            <img src="{{ url_for('static', filename='images/' + upload_id + '_violin_plot.png') }}" alt="Box Plot">
                     <p></p>
                     <p>The box in the boxplot spans the interval between the first and the third quartile, which contains half of the data. The whiskers extend out by 1.5 times the length of the box. Any data point that falls outside the interval spanned by the whiskers is a suspected outlier. The vertical line inside the box represents the median.</p>
                     <p>If the columns of your dataset correspond to variables that have very different scales we split the plot so that only the boxplots which can be meaningfully compared end up in the same subplot.</p>
@@ -104,7 +104,7 @@
             <p>We also detect categorical variables that are a mere ID or name. These variables have one level per observation. We discard them in the subsequent analysis since they are not informative.</p>
             {% if num_plottable_categorical > 0 %}
             <h3>Barchart</h3>
-        <img src="{{ url_for('static', filename='images/barchart.png') }}" alt="Barchart for categorical variables">
+        <img src="{{ url_for('static', filename='images/' + upload_id + '_barchart.png') }}" alt="Barchart for categorical variables">
             <p>The barchart show the counts for each level of a categorical variable. If the number of levels exceeds 20, only the most frequent levels are shown, and the others are lumped together into the category <em>other</em>.
             {% endif %}            
             {% endif %}
@@ -112,8 +112,8 @@
             <h3>Histograms</h3>
 {% if 5 > num_numeric %}
 {% for column in num_columns_list %}
-            <a href="{{ url_for('static', filename='images/histograms/histogram_' + column + '.png') }}">
-            <img src="{{ url_for('static', filename='images/histograms/histogram_' + column + '.png') }}" alt="{{ column }} Histogram" style="max-width: {{ thumbnail_size }}; max-height: {{ thumbnail_size }};">
+            <a href="{{ url_for('static', filename='images/histograms/' + upload_id + '_histogram_' + column + '.png') }}" target="_blank">
+            <img src="{{ url_for('static', filename='images/histograms/' + upload_id + '_histogram_' + column + '.png') }}" alt="{{ column }} Histogram" style="max-width: {{ thumbnail_size }}; max-height: {{ thumbnail_size }};">
             </a>
         {% endfor %}
 {% endif %}
@@ -124,8 +124,8 @@
         {% set thumbnail_size = '200px' %}
         {% for column in num_columns_list %}
         <td>
-            <a href="{{ url_for('static', filename='images/histograms/histogram_' + column + '.png') }}">
-            <img src="{{ url_for('static', filename='images/histograms/histogram_' + column + '.png') }}" alt="{{ column }} Histogram" style="max-width: {{ thumbnail_size }}; max-height: {{ thumbnail_size }};">
+            <a href="{{ url_for('static', filename='images/histograms/' + upload_id + '_histogram_' + column + '.png') }}" target="_blank">
+            <img src="{{ url_for('static', filename='images/histograms/' + upload_id + '_histogram_' + column + '.png') }}" alt="{{ column }} Histogram" style="max-width: {{ thumbnail_size }}; max-height: {{ thumbnail_size }};">
             </a>
         </td>
         {% if loop.index is divisibleby 5 %} <!--Change the '5' to change the number of images per row-->
@@ -161,18 +161,18 @@
             <p>We select up to ten pairs of variables with the highest <a href='https://en.wikipedia.org/wiki/Mutual_information'>mutual information</a>. These are likely to be related in some fashion, so it is worth visualizing their scatter plots.</p>
             <p>We use DirectLINGAM (<a href='https://www.jmlr.org/papers/volume12/shimizu11a/shimizu11a.pdf'>Shimizu et al. 2011</a>) to guess a causal order between each pair of variables, and we display the cause in the x-axis and the effect in the y-axis. Keep in mind that subject matter knowledge should be used to correctly ascertain causal relations.</p>
             <p>If the R-square of a linear regression exceeds 0.8 we also plot the regression line and display its equation.</p>
-        <img src="{{ url_for('static', filename='images/mipairsscatter.png') }}" alt="Scatter Plots of Mutually informative variables">
+        <img src="{{ url_for('static', filename='images/' + upload_id + '_mipairsscatter.png') }}" alt="Scatter Plots of Mutually informative variables">
 
         {% if num_numeric > 3 %}
         <h2>Multivariate Analysis</h2>
         <h3>Parallel coordinate display</h3>
-        <img src="{{ url_for('static', filename='images/parcoord.png') }}" alt="Parallel coordinate display">
+        <img src="{{ url_for('static', filename='images/' + upload_id + '_parcoord.png') }}" alt="Parallel coordinate display">
         <p>In a parallel coordinate display a curve corresponds to one row of your dataset. The point where the curve intersects the vertical segment corresponding to one of your variables represents the value of that variable for that row. To improve the plot's readability each variable has been scaled to [0, 1]</p>
         {% endif %}
         {% if num_numeric == 3 %}
         <h2>Multivariate Analysis</h2>
         <h3>3D scatterplot</h3>
-        <img src="{{ url_for('static', filename='images/parcoord.png') }}" alt="Parallel coordinate display">
+        <img src="{{ url_for('static', filename='images/' + upload_id + '_parcoord.png') }}" alt="Parallel coordinate display">
         <p>Your dataset contains only three continuous variables. We show them here in the form of a three-dimensional scatterplot.</p>
         {% endif %}
         </div>
@@ -222,8 +222,19 @@
 </script>
 </div>
 
-<a href="{{ url_for('second_analysis') }}">Perform Second Analysis</a>
+<a href="{{ url_for('second_analysis') }}" id="startAnalysisButton">Perform dimensionality reduction and clustering analysis</a>
 
+<p></p>
+<p></p>
+<div class="loader" id="spinner">
+<h4 class="blink"> Analyzing... </h4>
+</div>
+
+<script>
+  document.getElementById('startAnalysisButton').addEventListener('click', function() {
+    document.getElementById('spinner').classList.add('loading');
+  });
+</script>
 
 <footer>
   <nav>

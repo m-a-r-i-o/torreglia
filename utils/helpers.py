@@ -11,14 +11,45 @@ from dateutil.parser import parse
 from scipy.stats import chi2_contingency, fisher_exact
 from itertools import combinations
 import math
+from flask import session
 from scipy.stats import mode
 from scipy.stats import chisquare
 import statsmodels.api as sm
 from scipy import interpolate
-from sklearn.metrics import r2_score
+from sklearn.metrics import r2_score 
+from mpl_toolkits.mplot3d import Axes3D
+import time
 
-def perform_second_analysis():
-    return 'yo'
+from sklearn_extra.cluster import KMedoids
+from sklearn.preprocessing import RobustScaler
+from sklearn.metrics import silhouette_score
+
+def clustering(df):
+    df_numeric = df.select_dtypes(include=[np.number])
+    scaler = RobustScaler()
+    df_numeric_scaled = scaler.fit_transform(df_numeric)
+    range_n_clusters = list(range(2,11))  # Adjust as needed
+    best_num_clusters = 0
+    best_silhouette_score = -1
+    for n_clusters in range_n_clusters:
+        # Fit the KMedoids model
+        kmedoids = KMedoids(n_clusters=n_clusters, random_state=0).fit(df_numeric_scaled)
+        # Compute the silhouette score
+        silhouette_avg = silhouette_score(df_numeric_scaled, kmedoids.labels_)
+        # Check if this silhouette score is better than the current best
+        if silhouette_avg > best_silhouette_score:
+            best_silhouette_score = silhouette_avg
+            best_num_clusters = n_clusters
+    # Now compute KMedoids with the best number of clusters 
+    kmedoids = KMedoids(n_clusters=best_num_clusters, random_state=0).fit(df_numeric_scaled)
+    # Assign the labels to a new column in your DataFrame
+    df_numeric['cluster'] = kmedoids.labels_
+    # Get the medoids
+    medoids = df_numeric.iloc[kmedoids.medoid_indices_, :]
+    return medoids
+
+def perform_second_analysis(df):
+    return clustering(df)
 
 def benford_law(series):
     # Calculate Benford's frequency for digits 1-9
@@ -267,11 +298,9 @@ def barchart_for_categorical_vars(df, top_n=20):
         axs[i].set_title(f'Distribution of {col}')
 
     plt.tight_layout()
-    plt.savefig("static/images/barchart.png", bbox_inches='tight') 
+    upload_id = session.get("upload_id")
+    plt.savefig(f"static/images/{upload_id}_barchart.png", bbox_inches='tight') 
     plt.close()
-
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
 
 def plot_3d_scatter(df):
     fig = plt.figure(figsize=(8, 6))
@@ -287,7 +316,8 @@ def plot_3d_scatter(df):
     ax.set_ylabel(df.columns[1])
     ax.set_zlabel(df.columns[2])
 
-    plt.savefig("static/images/parcoord.png", bbox_inches='tight') 
+    upload_id = session.get("upload_id")
+    plt.savefig(f"static/images/{upload_id}_parcoord.png", bbox_inches='tight') 
     plt.close()
 
 def create_boxplot(df):
@@ -337,7 +367,8 @@ def create_boxplot(df):
         plt.yticks(fontsize=14)
     # Save the figure
     plt.tight_layout()
-    plt.savefig("static/images/violin_plot.png", bbox_inches='tight')
+    upload_id = session.get("upload_id")
+    plt.savefig(f"static/images/{upload_id}_violin_plot.png", bbox_inches='tight')
     plt.close()
 
 
@@ -365,7 +396,8 @@ def parallel_coordinate_plot(df):
     plt.xticks(x, df.columns, rotation=90)
     plt.ylabel('Value (scaled to [0,1])')
 
-    plt.savefig("static/images/parcoord.png", bbox_inches='tight') 
+    upload_id = session.get("upload_id")
+    plt.savefig(f"static/images/{upload_id}_parcoord.png", bbox_inches='tight') 
     plt.close()
 
 def preprocessing_df(df):
@@ -549,4 +581,5 @@ def plot_scatter_plots(df, pairs, threshold = 0.8):
 
 
     plt.tight_layout()
-    plt.savefig("static/images/mipairsscatter.png", bbox_inches='tight') 
+    upload_id = session.get("upload_id")
+    plt.savefig(f"static/images/{upload_id}_mipairsscatter.png", bbox_inches='tight') 

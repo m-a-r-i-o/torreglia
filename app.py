@@ -1,4 +1,4 @@
-from flask import Flask, request, render_template, url_for
+from flask import Flask, request, render_template, url_for, session
 import pandas as pd
 import numpy as np
 from scipy.stats import shapiro, spearmanr
@@ -12,8 +12,10 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from utils.helpers import *
 import matplotlib as mpl
+import uuid
 
 app = Flask(__name__)
+app.secret_key = 'a8ed7444d7b9c22af778b8465576abe9'
 
 mpl.rcParams['axes.edgecolor'] = '#888888'
 mpl.rcParams['axes.labelcolor'] = '#222222'
@@ -23,16 +25,18 @@ mpl.rcParams['text.color'] = '#222222'
 
 @app.route('/second_analysis')
 def second_analysis():
-    # Call your second analysis function here
-    result = perform_second_analysis()
-
-    # You can then pass the results of your analysis to another template
-    # that is designed to display these results
-    return render_template('second_analysis_results.html', result=result)
+    filename = session['filename']
+    file_path = os.path.join('static', filename)
+    df = pd.read_csv(file_path)
+    result = perform_second_analysis(df).to_html(index=False)
+    return render_template('report2.html', result=result, file=filename)
 
 
 @app.route('/', methods=['GET', 'POST'])
 def upload():
+    #upload_id = str(uuid.uuid4())
+    upload_id = str(uuid.uuid4()).replace('e', '3')
+    session['upload_id'] = upload_id
     if request.method == 'POST':
         file = request.files['datafile']
         if file:
@@ -45,6 +49,10 @@ def upload():
             sampled_df_table = sample_df.to_html(index=False)
 
             df, init_num_rows, num_rows_no_nan, num_duplicated_rows, na_count, constant_columns, date_columns = preprocessing_df(df)
+
+            file_path = os.path.join('static', file.filename)
+            df.to_csv(file_path)
+            session['filename'] = file.filename
 
             # Univariate analysis
             print("Univariate analysis")
@@ -133,7 +141,7 @@ def upload():
                     plt.hist(df_numeric[column], color='#A0A0A0', edgecolor=None, bins=binrule(df_numeric[column]))
                     plt.xlabel(column)
                     plt.ylabel('Counts')
-                    plt.savefig(f'static/images/histograms/histogram_{column}.png', bbox_inches='tight')  # Save the figure
+                    plt.savefig(f'static/images/histograms/{upload_id}_histogram_{column}.png', bbox_inches='tight')  # Save the figure
                     plt.close()  # Close the figure
 
                 # Calculating mutual information between variables
@@ -178,6 +186,7 @@ def upload():
 
             #plt.close()
             print("Finishing off")
+
             return render_template(
                 'report.html',
                 file=file.filename,
@@ -200,7 +209,8 @@ def upload():
                 sampled_df_table = sampled_df_table,
                 cat_bivariate_stats = cat_bivariate_stats,
                 col_summary_table_html = col_summary_table_html,
-                num_plottable_categorical = num_plottable_categorical
+                num_plottable_categorical = num_plottable_categorical,
+                upload_id = upload_id
             )
     return render_template('upload.html')
 

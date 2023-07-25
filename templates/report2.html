@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+<meta http-equiv="Pragma" content="no-cache" />
+<meta http-equiv="Expires" content="0" />
+    <title>Data Analysis Report</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}">
+</head>
+<body>
+
+<header>
+  <nav>
+    <ul>
+      <li><strong>df.&#x2118;()</strong>
+</li>
+      <li><a href="/">Home</a></li>
+      <!-- Add more navigation links here -->
+    </ul>
+  </nav>
+</header>
+    <div class="container">
+        <h1>Data Analysis Report for <em>{{file}}</em></h1>
+        <h2>Cluster medoids</h2>
+        {{ result | safe }}
+</body>
+
+</html>
