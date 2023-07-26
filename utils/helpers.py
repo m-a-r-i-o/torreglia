@@ -47,10 +47,10 @@ def clustering(df):
     kmedoids = KMedoids(n_clusters=best_num_clusters, random_state=0).fit(df_numeric_scaled)
     # Assign the labels to a new column in your DataFrame
     categories = list(df_numeric.columns)
+    medoids_scaled = pd.DataFrame(df_numeric_scaled, columns=df_numeric.columns).iloc[kmedoids.medoid_indices_, :]
     df_numeric['cluster'] = kmedoids.labels_
     # Get the medoids
     medoids = df_numeric.iloc[kmedoids.medoid_indices_, :]
-    medoids_scaled = pd.DataFrame(df_numeric_scaled).iloc[kmedoids.medoid_indices_, :]
 
     plt.figure()
     plt.plot(ra, silhouette_scores, color = "#888888")
@@ -72,7 +72,7 @@ def clustering(df):
     for i, ax in enumerate(axs.flatten()):
         values = medoids_scaled.iloc[i].values.flatten().tolist()
         values += values[:1] # Repeat the first value to close the circular graph
-        ax.fill(angles, values, color='#C6D3FA')
+        ax.fill(angles, values, color='#DEDDDA')
         ax.set_yticklabels([])
         ax.set_xticks(angles[:-1])
         ax.set_xticklabels(categories)
