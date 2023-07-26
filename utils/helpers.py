@@ -72,7 +72,7 @@ def clustering(df):
     for i, ax in enumerate(axs.flatten()):
         values = medoids_scaled.iloc[i].values.flatten().tolist()
         values += values[:1] # Repeat the first value to close the circular graph
-        ax.fill(angles, values, color='#A0A0A0')
+        ax.fill(angles, values, color='#C6D3FA')
         ax.set_yticklabels([])
         ax.set_xticks(angles[:-1])
         ax.set_xticklabels(categories)
