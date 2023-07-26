@@ -28,10 +28,14 @@ def second_analysis():
     filename = session['filename']
     file_path = os.path.join('static', filename)
     df = pd.read_csv(file_path)
-    result = perform_second_analysis(df).to_html(index=False)
+    medoids, ra, silhouette_scores = perform_second_analysis(df)
+    number_of_clusters = ra[np.argmax(silhouette_scores)]
+    max_sil = np.round(silhouette_scores.max(),2)
+    result = medoids.to_html(index=False)
     upload_id = session['upload_id']
     return render_template('report2.html', result=result,
-     file=filename, upload_id=upload_id)
+     file=filename, upload_id=upload_id,
+    number_of_clusters=number_of_clusters, max_sil=max_sil)
 
 
 @app.route('/', methods=['GET', 'POST'])

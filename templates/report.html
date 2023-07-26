@@ -220,15 +220,18 @@
         MathJax.typesetPromise();
     }
 </script>
-</div>
 
-<a href="{{ url_for('second_analysis') }}" id="startAnalysisButton">Perform dimensionality reduction and clustering analysis</a>
+<p><a href="{{ url_for('second_analysis') }}" id="startAnalysisButton" target="_blank">Perform dimensionality reduction and clustering analysis...</a></p>
 
-<p></p>
+<p style="padding-bottom:30px;"></p>
 <p></p>
 <div class="loader" id="spinner">
 <h4 class="blink"> Analyzing... </h4>
 </div>
+
+</div>
+
+
 
 <script>
   document.getElementById('startAnalysisButton').addEventListener('click', function() {

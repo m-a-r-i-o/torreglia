@@ -27,7 +27,8 @@ def clustering(df):
     df_numeric = df.select_dtypes(include=[np.number])
     scaler = RobustScaler()
     df_numeric_scaled = scaler.fit_transform(df_numeric)
-    ra = range(2,11)
+    maxclu = min(df.shape[0], 11)
+    ra = range(2, maxclu)
     range_n_clusters = list(ra)  # Adjust as needed
     best_num_clusters = 0
     best_silhouette_score = -1
@@ -45,18 +46,42 @@ def clustering(df):
     # Now compute KMedoids with the best number of clusters 
     kmedoids = KMedoids(n_clusters=best_num_clusters, random_state=0).fit(df_numeric_scaled)
     # Assign the labels to a new column in your DataFrame
+    categories = list(df_numeric.columns)
     df_numeric['cluster'] = kmedoids.labels_
     # Get the medoids
     medoids = df_numeric.iloc[kmedoids.medoid_indices_, :]
+    medoids_scaled = pd.DataFrame(df_numeric_scaled).iloc[kmedoids.medoid_indices_, :]
 
     plt.figure()
-    plt.plot(ra, silhouette_scores, color = "#222222")
+    plt.plot(ra, silhouette_scores, color = "#888888")
     plt.xlabel("Number of clusters")
     plt.ylabel("Average silhouette width")
     upload_id = session.get("upload_id")
     plt.savefig(f"static/images/{upload_id}_sil.png", bbox_inches='tight') 
     plt.close()
-    return medoids
+
+    # Plotting code
+    N = len(categories)
+    angles = [n / float(N) * 2 * np.pi for n in range(N)]
+    angles += angles[:1]
+
+    # Initialise the spider plot
+    fig, axs = plt.subplots(1, best_num_clusters, figsize=(10, 6), subplot_kw=dict(polar=True))
+    fig.subplots_adjust(wspace=0.3)
+
+    for i, ax in enumerate(axs.flatten()):
+        values = medoids_scaled.iloc[i].values.flatten().tolist()
+        values += values[:1] # Repeat the first value to close the circular graph
+        ax.fill(angles, values, color='#A0A0A0')
+        ax.set_yticklabels([])
+        ax.set_xticks(angles[:-1])
+        ax.set_xticklabels(categories)
+        #ax.set_title(f'Medoid {i+1}')
+
+    plt.savefig(f"static/images/{upload_id}_medoids.png", bbox_inches='tight') 
+    plt.close()
+
+    return medoids, ra, np.array(silhouette_scores)
 
 def perform_second_analysis(df):
     return clustering(df)
