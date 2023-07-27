@@ -1,33 +1,39 @@
+# Standard library imports
+import math
+import re
+import time
+from dateutil.parser import parse
+from itertools import combinations
+
+# Third party library imports
+import matplotlib.pyplot as plt
+import matplotlib as mpl
 import numpy as np
 import pandas as pd 
-import matplotlib.pyplot as plt
-from sklearn.feature_selection import mutual_info_regression 
 import seaborn as sns
-from scipy.interpolate import make_interp_spline
-from lingam.direct_lingam import DirectLiNGAM
-from scipy.stats import entropy
-import re
-from dateutil.parser import parse
-from scipy.stats import chi2_contingency, fisher_exact
-from itertools import combinations
-import math
-from flask import session
-from scipy.stats import mode
-from scipy.stats import chisquare
 import statsmodels.api as sm
-from scipy import interpolate
-from sklearn.metrics import r2_score 
 from mpl_toolkits.mplot3d import Axes3D
-import time
+from scipy import interpolate
+from scipy.interpolate import make_interp_spline
+from scipy.stats import chi2_contingency, chisquare, entropy, fisher_exact, mode
 from sklearn_extra.cluster import KMedoids
+from sklearn.feature_selection import mutual_info_regression 
+from sklearn.metrics import r2_score, silhouette_score
 from sklearn.preprocessing import RobustScaler
-from sklearn.metrics import silhouette_score
 
-def clustering(df):
-    df_numeric = df.select_dtypes(include=[np.number])
-    scaler = RobustScaler()
-    df_numeric_scaled = scaler.fit_transform(df_numeric)
-    maxclu = min(df.shape[0], 11)
+# Application-specific imports
+from flask import session
+from lingam.direct_lingam import DirectLiNGAM
+
+#Setting matplotlib params
+mpl.rcParams['axes.edgecolor'] = '#888888'
+mpl.rcParams['axes.labelcolor'] = '#222222'
+mpl.rcParams['xtick.color'] = '#555555'
+mpl.rcParams['ytick.color'] = '#555555'
+mpl.rcParams['text.color'] = '#222222'
+
+def find_best_number_of_clusters(df_numeric_scaled):
+    maxclu = min(df_numeric_scaled.shape[0], 11)
     ra = range(2, maxclu)
     range_n_clusters = list(ra)  # Adjust as needed
     best_num_clusters = 0
@@ -43,28 +49,23 @@ def clustering(df):
         if silhouette_avg > best_silhouette_score:
             best_silhouette_score = silhouette_avg
             best_num_clusters = n_clusters
-    # Now compute KMedoids with the best number of clusters 
-    kmedoids = KMedoids(n_clusters=best_num_clusters, random_state=0).fit(df_numeric_scaled)
-    # Assign the labels to a new column in your DataFrame
-    categories = list(df_numeric.columns)
-    print("I am printing the df column names")
-    print(df.columns)
-    medoids_scaled = pd.DataFrame(df_numeric_scaled, columns=df_numeric.columns).iloc[kmedoids.medoid_indices_, :]
-    print("I am printing the medoids_scaled column names")
-    print(medoids_scaled.columns)
-    df_numeric['cluster'] = kmedoids.labels_
-    # Get the medoids
-    medoids = df_numeric.iloc[kmedoids.medoid_indices_, :]
+    return ra, silhouette_scores, best_num_clusters
 
+def plot_silhouette(ra, silhouette_scores):
     plt.figure()
     plt.plot(ra, silhouette_scores, color = "#888888")
     plt.xlabel("Number of clusters")
     plt.ylabel("Average silhouette width")
+    plt.ylim([-1,1])
+    plt.xlim([1, 1+max(ra)])
+    plt.plot([1, 1+max(ra)],[0.7,0.7], color = "#C6D3FA", linestyle='--', linewidth=0.5)
+    plt.plot([1, 1+max(ra)],[0.25,0.25], color = "#C6D3FA", linestyle='--', linewidth=0.5)
+    plt.plot([1, 1+max(ra)],[0,0], color = "#C6D3FA", linestyle='--', linewidth=0.5)
     upload_id = session.get("upload_id")
     plt.savefig(f"static/images/{upload_id}_sil.png", bbox_inches='tight') 
     plt.close()
 
-    # Plotting code
+def plot_radar(categories, best_num_clusters, medoids_scaled):
     N = len(categories)
     angles = [n / float(N) * 2 * np.pi for n in range(N)]
     angles += angles[:1]
@@ -82,8 +83,33 @@ def clustering(df):
         ax.set_xticklabels(categories)
         #ax.set_title(f'Medoid {i+1}')
 
+    upload_id = session.get("upload_id")
     plt.savefig(f"static/images/{upload_id}_medoids.png", bbox_inches='tight') 
     plt.close()
+
+def clustering(df):
+    df_numeric = df.select_dtypes(include=[np.number])
+    scaler = RobustScaler()
+    df_numeric_scaled = scaler.fit_transform(df_numeric)
+
+    ra, silhouette_scores, best_num_clusters = find_best_number_of_clusters(df_numeric_scaled)
+    # Now compute KMedoids with the best number of clusters 
+    kmedoids = KMedoids(n_clusters=best_num_clusters, random_state=0).fit(df_numeric_scaled)
+    # Assign the labels to a new column in your DataFrame
+    categories = list(df_numeric.columns)
+    print("I am printing the df column names")
+    print(df.columns)
+    medoids_scaled = pd.DataFrame(df_numeric_scaled, columns=df_numeric.columns).iloc[kmedoids.medoid_indices_, :]
+    print("I am printing the medoids_scaled column names")
+    print(medoids_scaled.columns)
+    df_numeric['cluster'] = kmedoids.labels_
+    # Get the medoids
+    medoids = df_numeric.iloc[kmedoids.medoid_indices_, :]
+
+    plot_silhouette(ra, silhouette_scores)
+
+    # Plotting code
+    plot_radar(categories, best_num_clusters, medoids_scaled)
 
     return medoids, ra, np.array(silhouette_scores)
 
