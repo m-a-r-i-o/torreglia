@@ -47,7 +47,11 @@ def clustering(df):
     kmedoids = KMedoids(n_clusters=best_num_clusters, random_state=0).fit(df_numeric_scaled)
     # Assign the labels to a new column in your DataFrame
     categories = list(df_numeric.columns)
+    print("I am printing the df column names")
+    print(df.columns)
     medoids_scaled = pd.DataFrame(df_numeric_scaled, columns=df_numeric.columns).iloc[kmedoids.medoid_indices_, :]
+    print("I am printing the medoids_scaled column names")
+    print(medoids_scaled.columns)
     df_numeric['cluster'] = kmedoids.labels_
     # Get the medoids
     medoids = df_numeric.iloc[kmedoids.medoid_indices_, :]
@@ -110,7 +114,7 @@ def benford_law(series):
 
 
 
-def detect_high_frequency_values(df, threshold=0.01):
+def detect_high_frequency_values(df, threshold=0.1):
     high_freq_cols = []
     n = len(df)
     for col in df.columns:

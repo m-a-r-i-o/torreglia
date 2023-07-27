@@ -57,7 +57,7 @@ def upload():
             df, init_num_rows, num_rows_no_nan, num_duplicated_rows, na_count, constant_columns, date_columns = preprocessing_df(df)
 
             file_path = os.path.join('static', file.filename)
-            df.to_csv(file_path)
+            df.to_csv(file_path, index = False)
             session['filename'] = file.filename
 
             # Univariate analysis
