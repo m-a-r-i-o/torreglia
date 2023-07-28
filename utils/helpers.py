@@ -453,7 +453,7 @@ def parallel_coordinate_plot(df):
         spl = make_interp_spline(x, y, k=3)  # type: BSpline
         xnew = np.linspace(min(x), max(x), 500)  
         ynew = spl(xnew)
-        plt.plot(xnew, ynew, alpha=0.08, color="#222222")
+        plt.plot(xnew, ynew, alpha=0.1, color="#222222")
 
     for i in x:
         plt.axvline(x=i, linestyle='dotted', color='#888888')
@@ -466,6 +466,7 @@ def parallel_coordinate_plot(df):
     plt.close()
 
 def preprocessing_df(df):
+    df.drop(columns=["Unnamed: 0"], inplace=True, errors="ignore")
     init_num_rows = df.shape[0]
     print("Computing NA statistics")
 

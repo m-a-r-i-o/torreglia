@@ -23,24 +23,8 @@ mpl.rcParams['xtick.color'] = '#555555'
 mpl.rcParams['ytick.color'] = '#555555'
 mpl.rcParams['text.color'] = '#222222'
 
-@app.route('/second_analysis')
-def second_analysis():
-    filename = session['filename']
-    file_path = os.path.join('static', filename)
-    df = pd.read_csv(file_path)
-    medoids, ra, silhouette_scores = perform_second_analysis(df)
-    number_of_clusters = ra[np.argmax(silhouette_scores)]
-    max_sil = np.round(silhouette_scores.max(),2)
-    result = medoids.to_html(index=False)
-    upload_id = session['upload_id']
-    return render_template('report2.html', result=result,
-     file=filename, upload_id=upload_id,
-    number_of_clusters=number_of_clusters, max_sil=max_sil)
-
-
 @app.route('/', methods=['GET', 'POST'])
 def upload():
-    #upload_id = str(uuid.uuid4())
     upload_id = str(uuid.uuid4()).replace('e', '3')
     session['upload_id'] = upload_id
     if request.method == 'POST':
@@ -57,7 +41,6 @@ def upload():
             df, init_num_rows, num_rows_no_nan, num_duplicated_rows, na_count, constant_columns, date_columns = preprocessing_df(df)
 
             file_path = os.path.join('static', file.filename)
-            df.to_csv(file_path, index = False)
             session['filename'] = file.filename
 
             # Univariate analysis

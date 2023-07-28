@@ -13,23 +13,30 @@
 <header>
   <nav>
     <ul>
-      <li><strong>df.&#x2118;()</strong>
-</li>
-      <li><a href="/">Home</a></li>
-      <!-- Add more navigation links here -->
+<li><strong><a href="/">teuvo.ai - exploratory data analysis utility</a></strong></li>
+<li><strong><a href="{{ url_for('static', filename='about.html') }}">about</a></strong></li>
     </ul>
   </nav>
 </header>
-	<h1> df.&#x2118;() data analysis utility </h1>
-	<h4> Select a .csv file to upload:</h4>
+	<h1> Select a .csv file to upload:</h1>
 	<p></p>
     <form method="POST" enctype="multipart/form-data" action="{{ url_for('upload') }}">
     <input type="file" name="datafile">
     <input type="submit" id="startAnalysisButton">
 </form>
 
-<p></p>
-<p></p>
+<h4 style="color: #A0A0A0; padding-top: 100px">Your .csv file should look something like this:</h4>
+  <p> </p>
+  <pre style="color: #A0A0A0">
+apple, banana,    fig,   mango,   durian
+   61,   -0.8,   44.2,     0.0,   Taipei
+-0.01,    0.5, 123.99, -100.04,   Tainan
+  0.6,    1.1,  400.0, -121456, Taichung
+   NA,     NA,   61.2,     0.0,  Kenting
+   61,     61,     61,      61,   Taipei
+    1,   0.61,     61,      62,   Tainan
+  </pre>
+
 <div class="loader" id="spinner">
 <h4 class="blink"> Analyzing... </h4>
 </div>
